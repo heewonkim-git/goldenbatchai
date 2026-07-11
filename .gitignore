@@ -35,3 +35,7 @@ Thumbs.db
 # Runtime artifacts
 backend/artifacts/
 *.log
+
+# Screenshots / scratch images
+화면 캡처*.png
+*.screenshot.png
