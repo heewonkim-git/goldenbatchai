@@ -1,0 +1,26 @@
+# Render blueprint for the Python backend (Analysis ML + orchestrator + MSAT + RAG).
+# Deploy: Render Dashboard → New → Blueprint → point at this repo.
+# The frontend deploys separately on Vercel (root directory = frontend/).
+services:
+  - type: web
+    name: goldenbatch-backend
+    runtime: python
+    rootDir: backend
+    plan: starter            # 512MB; bump to standard if SHAP/xgboost OOMs
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: SEED_MODE
+        value: "1"
+      - key: AUTOML_FRAMEWORK
+        value: autogluon
+      - key: MSAT_MODEL
+        value: claude-opus-4-8
+      # Set these in the Render dashboard (not committed):
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CORS_ORIGINS       # e.g. https://your-app.vercel.app
+        sync: false

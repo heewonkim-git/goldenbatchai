@@ -1,0 +1,185 @@
+/* Design system tokens — vendored from design-system/tokens.css (the shared
+   source of truth). Re-copy on DS version bumps. Vendored so the Vercel build
+   (root = frontend/) needs no files outside its root directory. */
+@import "./ds-tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--ds-bg);
+  color: var(--ds-text);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-base);
+  -webkit-font-smoothing: antialiased;
+}
+
+.sg-transition,
+.sg-transition * {
+  transition: background-color var(--ds-transition), border-color var(--ds-transition),
+    color var(--ds-transition);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sg-transition,
+  .sg-transition * {
+    transition: none !important;
+  }
+}
+
+/* ---- Component layer: matches the design-system style guide exactly ------ */
+@layer components {
+  .eyebrow {
+    font-family: var(--ds-font-mono);
+    font-size: var(--ds-text-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ds-text-subtle);
+  }
+  .serif {
+    font-family: var(--ds-font-serif);
+  }
+
+  /* Buttons */
+  .btn {
+    font-family: var(--ds-font-sans);
+    font-size: var(--ds-text-sm);
+    font-weight: 500;
+    padding: 8px 15px;
+    border-radius: var(--ds-radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  .btn:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
+  }
+  .btn-primary {
+    background: var(--ds-brand);
+    color: var(--ds-brand-fg);
+  }
+  .btn-primary:hover {
+    background: var(--ds-brand-hover);
+  }
+  .btn-primary:active {
+    background: var(--ds-brand-active);
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Inputs / selects */
+  .field-input {
+    font-family: inherit;
+    font-size: var(--ds-text-xs);
+    padding: 7px 10px;
+    background: var(--ds-surface);
+    color: var(--ds-text);
+    border: 1px solid var(--ds-border-strong);
+    border-radius: var(--ds-radius-md);
+  }
+  .field-input:focus {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
+    border-color: var(--ds-brand);
+  }
+
+  /* Badges */
+  .badge {
+    font-size: var(--ds-text-xs);
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: var(--ds-radius-full);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* Entity bubbles (agent messages) */
+  .bubble {
+    border: 1px solid var(--ds-border);
+    border-left-width: 3px;
+    border-radius: var(--ds-radius-md);
+    padding: 10px 12px;
+    font-size: var(--ds-text-xs);
+  }
+  .bubble-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .bubble-head .meta {
+    color: var(--ds-text-subtle);
+    font-weight: 400;
+  }
+  .bubble-body {
+    color: var(--ds-text-muted);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .b-analysis {
+    border-left-color: var(--ds-accent-1);
+    background: var(--ds-accent-1-bg);
+  }
+  .b-analysis .who {
+    color: var(--ds-accent-1);
+  }
+  .b-msat {
+    border-left-color: var(--ds-accent-2);
+    background: var(--ds-accent-2-bg);
+  }
+  .b-msat .who {
+    color: var(--ds-accent-2);
+  }
+  .b-system {
+    border-left-color: var(--ds-border-strong);
+    background: var(--ds-surface-2);
+  }
+  .b-system .who {
+    color: var(--ds-text-subtle);
+  }
+
+  /* Timeline nodes */
+  .tnode {
+    height: 30px;
+    min-width: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--ds-radius-md);
+    font-size: var(--ds-text-xs);
+    font-weight: 500;
+    padding: 0 10px;
+  }
+  .tnode-done {
+    background: var(--ds-accent-2-bg);
+    color: var(--ds-accent-2);
+  }
+  .tnode-active {
+    background: var(--ds-accent-1-bg);
+    color: var(--ds-accent-1);
+  }
+  .tnode-pending {
+    background: var(--ds-surface-2);
+    color: var(--ds-text-subtle);
+  }
+  .tnode-final {
+    background: var(--ds-success-bg);
+    color: var(--ds-success);
+    font-weight: 600;
+  }
+  .tconn {
+    width: 16px;
+    height: 1px;
+    background: var(--ds-border-strong);
+    flex: none;
+  }
+}

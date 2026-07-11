@@ -1,0 +1,137 @@
+/* =============================================================================
+ * Shared Design System — Design Tokens (product-agnostic)
+ * Source of truth for BOTH "Golden Batch Multi-Agent" and "Deviation Review".
+ *
+ * Palette: Samsung Blue identity (#1428A0) on cool, near-neutral grounds.
+ *
+ * How to adopt (any stack): import this file once, then reference var(--ds-*).
+ * Never hardcode hex in a product; map product meaning onto the role slots
+ * (e.g. Golden Batch: accent-1 = Analysis, accent-2 = MSAT).
+ *
+ * Prefix `--ds-` = Design System. Bump --ds-version on breaking changes.
+ * ========================================================================== */
+
+:root {
+  --ds-version: "1.1.0";
+
+  /* ---- Brand (Samsung Blue) ------------------------------------------- */
+  --ds-brand: #1428a0;          /* Samsung Blue — primary action / identity  */
+  --ds-brand-hover: #0f1f80;    /* darker                                    */
+  --ds-brand-active: #0a1660;   /* darkest                                   */
+  --ds-brand-fg: #ffffff;       /* text/icon on brand                        */
+  --ds-brand-subtle: #eaeefb;   /* tinted background                         */
+
+  /* ---- Neutrals / surfaces (light, faint cool bias) ------------------- */
+  --ds-bg: #fbfcfe;
+  --ds-surface: #ffffff;
+  --ds-surface-2: #f2f5fa;
+  --ds-border: #e4e8f0;
+  --ds-border-strong: #c9d0de;
+  --ds-text: #0c1017;
+  --ds-text-muted: #4c5568;
+  --ds-text-subtle: #8a93a5;
+
+  /* ---- Semantic status ------------------------------------------------ */
+  --ds-success: #16a34a;   --ds-success-bg: #f0fdf4;
+  --ds-warning: #d97706;   --ds-warning-bg: #fffbeb;
+  --ds-danger:  #dc2626;   --ds-danger-bg:  #fef2f2;
+  --ds-info:    #2a5bd7;   --ds-info-bg:    #eaf0fc;
+
+  /* ---- Role accents (generic slots; product assigns meaning) ---------- */
+  --ds-accent-1: #1428a0;  --ds-accent-1-bg: rgba(20, 40, 160, 0.06);   /* Samsung blue */
+  --ds-accent-2: #7c3aed;  --ds-accent-2-bg: rgba(124, 58, 237, 0.06);  /* violet */
+  --ds-accent-3: #0d9488;  --ds-accent-3-bg: rgba(13, 148, 136, 0.06);  /* teal   */
+  --ds-accent-4: #d97706;  --ds-accent-4-bg: rgba(217, 119, 6, 0.06);   /* amber  */
+
+  /* ---- Typography ----------------------------------------------------- */
+  --ds-font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ds-font-serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --ds-font-mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+  --ds-text-xs: 0.75rem;    /* 12px */
+  --ds-text-sm: 0.8125rem;  /* 13px */
+  --ds-text-base: 0.875rem; /* 14px — dense enterprise default */
+  --ds-text-md: 0.9375rem;  /* 15px */
+  --ds-text-lg: 1.125rem;   /* 18px */
+  --ds-text-xl: 1.375rem;   /* 22px */
+  --ds-text-2xl: 1.75rem;   /* 28px */
+  --ds-weight-normal: 400;
+  --ds-weight-medium: 500;
+  --ds-weight-semibold: 600;
+  --ds-weight-bold: 700;
+  --ds-leading-tight: 1.25;
+  --ds-leading-normal: 1.5;
+
+  /* ---- Radius / shadow / spacing -------------------------------------- */
+  --ds-radius-sm: 4px;
+  --ds-radius-md: 8px;
+  --ds-radius-lg: 12px;
+  --ds-radius-full: 9999px;
+  --ds-shadow-sm: 0 1px 2px rgba(12, 16, 23, 0.06);
+  --ds-shadow-md: 0 4px 12px rgba(12, 16, 23, 0.08);
+  --ds-shadow-lg: 0 10px 30px rgba(12, 16, 23, 0.12);
+  --ds-space-1: 4px;  --ds-space-2: 8px;  --ds-space-3: 12px;
+  --ds-space-4: 16px; --ds-space-6: 24px; --ds-space-8: 32px;
+
+  /* ---- Layout / motion ------------------------------------------------ */
+  --ds-appbar-h: 52px;
+  --ds-content-max: 1440px;
+  --ds-focus-ring: 0 0 0 2px var(--ds-surface), 0 0 0 4px rgba(20, 40, 160, 0.5);
+  --ds-transition: 150ms ease;
+}
+
+/* ---- Dark theme: system preference (default signal) -------------------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ds-brand: #6c8ff5;         --ds-brand-hover: #89a6f8;  --ds-brand-active: #a9bffb;
+    --ds-brand-fg: #0a0c12;      --ds-brand-subtle: rgba(108, 143, 245, 0.16);
+    --ds-bg: #090b10;            --ds-surface: #12151c;      --ds-surface-2: #1b1f28;
+    --ds-border: #232936;        --ds-border-strong: #333b4a;
+    --ds-text: #eaedf3;          --ds-text-muted: #98a2b3;   --ds-text-subtle: #6b7484;
+    --ds-success: #22c55e; --ds-success-bg: rgba(34, 197, 94, 0.12);
+    --ds-warning: #f59e0b; --ds-warning-bg: rgba(245, 158, 11, 0.12);
+    --ds-danger:  #f87171; --ds-danger-bg:  rgba(248, 113, 113, 0.12);
+    --ds-info:    #6c93f5; --ds-info-bg:    rgba(108, 147, 245, 0.14);
+    --ds-accent-1: #6c8ff5; --ds-accent-1-bg: rgba(108, 143, 245, 0.14);
+    --ds-accent-2: #a78bfa; --ds-accent-2-bg: rgba(167, 139, 250, 0.14);
+    --ds-accent-3: #2dd4bf; --ds-accent-3-bg: rgba(45, 212, 191, 0.14);
+    --ds-accent-4: #fbbf24; --ds-accent-4-bg: rgba(251, 191, 36, 0.14);
+    --ds-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --ds-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --ds-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.6);
+    --ds-focus-ring: 0 0 0 2px var(--ds-surface), 0 0 0 4px rgba(108, 143, 245, 0.6);
+  }
+}
+
+/* ---- Dark theme: explicit toggle (wins over system) -------------------- */
+:root[data-theme="dark"] {
+  --ds-brand: #6c8ff5;         --ds-brand-hover: #89a6f8;  --ds-brand-active: #a9bffb;
+  --ds-brand-fg: #0a0c12;      --ds-brand-subtle: rgba(108, 143, 245, 0.16);
+  --ds-bg: #090b10;            --ds-surface: #12151c;      --ds-surface-2: #1b1f28;
+  --ds-border: #232936;        --ds-border-strong: #333b4a;
+  --ds-text: #eaedf3;          --ds-text-muted: #98a2b3;   --ds-text-subtle: #6b7484;
+  --ds-success: #22c55e; --ds-success-bg: rgba(34, 197, 94, 0.12);
+  --ds-warning: #f59e0b; --ds-warning-bg: rgba(245, 158, 11, 0.12);
+  --ds-danger:  #f87171; --ds-danger-bg:  rgba(248, 113, 113, 0.12);
+  --ds-info:    #6c93f5; --ds-info-bg:    rgba(108, 147, 245, 0.14);
+  --ds-accent-1: #6c8ff5; --ds-accent-1-bg: rgba(108, 143, 245, 0.14);
+  --ds-accent-2: #a78bfa; --ds-accent-2-bg: rgba(167, 139, 250, 0.14);
+  --ds-accent-3: #2dd4bf; --ds-accent-3-bg: rgba(45, 212, 191, 0.14);
+  --ds-accent-4: #fbbf24; --ds-accent-4-bg: rgba(251, 191, 36, 0.14);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ds-brand: #1428a0;         --ds-brand-hover: #0f1f80;  --ds-brand-active: #0a1660;
+  --ds-brand-fg: #ffffff;      --ds-brand-subtle: #eaeefb;
+  --ds-bg: #fbfcfe;            --ds-surface: #ffffff;      --ds-surface-2: #f2f5fa;
+  --ds-border: #e4e8f0;        --ds-border-strong: #c9d0de;
+  --ds-text: #0c1017;          --ds-text-muted: #4c5568;   --ds-text-subtle: #8a93a5;
+  --ds-success: #16a34a; --ds-success-bg: #f0fdf4;
+  --ds-warning: #d97706; --ds-warning-bg: #fffbeb;
+  --ds-danger:  #dc2626; --ds-danger-bg:  #fef2f2;
+  --ds-info:    #2a5bd7; --ds-info-bg:    #eaf0fc;
+  --ds-accent-1: #1428a0; --ds-accent-1-bg: rgba(20, 40, 160, 0.06);
+  --ds-accent-2: #7c3aed; --ds-accent-2-bg: rgba(124, 58, 237, 0.06);
+  --ds-accent-3: #0d9488; --ds-accent-3-bg: rgba(13, 148, 136, 0.06);
+  --ds-accent-4: #d97706; --ds-accent-4-bg: rgba(217, 119, 6, 0.06);
+}

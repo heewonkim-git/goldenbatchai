@@ -1,0 +1,25 @@
+# --- Web / server ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-dotenv==1.0.1
+pydantic==2.10.4
+sse-starlette==2.1.3
+python-multipart==0.0.20
+
+# --- LLM (MSAT Agent) ---
+anthropic==0.42.0
+
+# --- ML core (Analysis Agent, M2) ---
+# scikit-learn pinned to 1.5.2: 1.6 breaks xgboost/lightgbm sklearn-tags compat.
+pandas==2.2.3
+numpy==2.1.3
+scikit-learn==1.5.2
+scipy==1.14.1
+xgboost==2.1.3
+lightgbm==4.5.0
+shap==0.46.0
+# Optional / heavier (not in the lightweight core):
+# catboost==1.2.7
+# optuna==4.1.0
+# Boruta==0.4.3
+# autogluon.tabular==1.2

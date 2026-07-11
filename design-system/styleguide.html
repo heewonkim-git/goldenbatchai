@@ -1,0 +1,675 @@
+<title>Design System — Style Guide v1.1.0 (Samsung Blue)</title>
+
+<style>
+  /* ========================================================================
+     Design System tokens — Samsung Blue palette, copied verbatim from
+     design-system/tokens.css so this guide renders the real system.
+     ===================================================================== */
+  :root {
+    --ds-version: "1.1.0";
+    --ds-brand: #1428a0; --ds-brand-hover: #0f1f80; --ds-brand-active: #0a1660;
+    --ds-brand-fg: #ffffff; --ds-brand-subtle: #eaeefb;
+    --ds-bg: #fbfcfe; --ds-surface: #ffffff; --ds-surface-2: #f2f5fa;
+    --ds-border: #e4e8f0; --ds-border-strong: #c9d0de;
+    --ds-text: #0c1017; --ds-text-muted: #4c5568; --ds-text-subtle: #8a93a5;
+    --ds-success: #16a34a; --ds-success-bg: #f0fdf4;
+    --ds-warning: #d97706; --ds-warning-bg: #fffbeb;
+    --ds-danger: #dc2626; --ds-danger-bg: #fef2f2;
+    --ds-info: #2a5bd7; --ds-info-bg: #eaf0fc;
+    --ds-accent-1: #1428a0; --ds-accent-1-bg: rgba(20,40,160,0.06);
+    --ds-accent-2: #7c3aed; --ds-accent-2-bg: rgba(124,58,237,0.06);
+    --ds-accent-3: #0d9488; --ds-accent-3-bg: rgba(13,148,136,0.06);
+    --ds-accent-4: #d97706; --ds-accent-4-bg: rgba(217,119,6,0.06);
+    --ds-font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --ds-font-serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --ds-font-mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    --ds-text-xs: 0.75rem; --ds-text-sm: 0.8125rem; --ds-text-base: 0.875rem;
+    --ds-text-md: 0.9375rem; --ds-text-lg: 1.125rem; --ds-text-xl: 1.375rem; --ds-text-2xl: 1.75rem;
+    --ds-radius-sm: 4px; --ds-radius-md: 8px; --ds-radius-lg: 12px; --ds-radius-full: 9999px;
+    --ds-shadow-sm: 0 1px 2px rgba(12,16,23,0.06);
+    --ds-shadow-md: 0 4px 12px rgba(12,16,23,0.08);
+    --ds-shadow-lg: 0 10px 30px rgba(12,16,23,0.12);
+    --ds-space-1: 4px; --ds-space-2: 8px; --ds-space-3: 12px;
+    --ds-space-4: 16px; --ds-space-6: 24px; --ds-space-8: 32px;
+    --ds-focus-ring: 0 0 0 2px var(--ds-surface), 0 0 0 4px rgba(20,40,160,0.5);
+    --ds-transition: 150ms ease;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ds-brand: #6c8ff5; --ds-brand-hover: #89a6f8; --ds-brand-active: #a9bffb;
+      --ds-brand-fg: #0a0c12; --ds-brand-subtle: rgba(108,143,245,0.16);
+      --ds-bg: #090b10; --ds-surface: #12151c; --ds-surface-2: #1b1f28;
+      --ds-border: #232936; --ds-border-strong: #333b4a;
+      --ds-text: #eaedf3; --ds-text-muted: #98a2b3; --ds-text-subtle: #6b7484;
+      --ds-success: #22c55e; --ds-success-bg: rgba(34,197,94,0.12);
+      --ds-warning: #f59e0b; --ds-warning-bg: rgba(245,158,11,0.12);
+      --ds-danger: #f87171; --ds-danger-bg: rgba(248,113,113,0.12);
+      --ds-info: #6c93f5; --ds-info-bg: rgba(108,147,245,0.14);
+      --ds-accent-1: #6c8ff5; --ds-accent-1-bg: rgba(108,143,245,0.14);
+      --ds-accent-2: #a78bfa; --ds-accent-2-bg: rgba(167,139,250,0.14);
+      --ds-accent-3: #2dd4bf; --ds-accent-3-bg: rgba(45,212,191,0.14);
+      --ds-accent-4: #fbbf24; --ds-accent-4-bg: rgba(251,191,36,0.14);
+      --ds-shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+      --ds-shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+      --ds-shadow-lg: 0 10px 30px rgba(0,0,0,0.6);
+      --ds-focus-ring: 0 0 0 2px var(--ds-surface), 0 0 0 4px rgba(108,143,245,0.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ds-brand: #6c8ff5; --ds-brand-hover: #89a6f8; --ds-brand-active: #a9bffb;
+    --ds-brand-fg: #0a0c12; --ds-brand-subtle: rgba(108,143,245,0.16);
+    --ds-bg: #090b10; --ds-surface: #12151c; --ds-surface-2: #1b1f28;
+    --ds-border: #232936; --ds-border-strong: #333b4a;
+    --ds-text: #eaedf3; --ds-text-muted: #98a2b3; --ds-text-subtle: #6b7484;
+    --ds-success: #22c55e; --ds-success-bg: rgba(34,197,94,0.12);
+    --ds-warning: #f59e0b; --ds-warning-bg: rgba(245,158,11,0.12);
+    --ds-danger: #f87171; --ds-danger-bg: rgba(248,113,113,0.12);
+    --ds-info: #6c93f5; --ds-info-bg: rgba(108,147,245,0.14);
+    --ds-accent-1: #6c8ff5; --ds-accent-1-bg: rgba(108,143,245,0.14);
+    --ds-accent-2: #a78bfa; --ds-accent-2-bg: rgba(167,139,250,0.14);
+    --ds-accent-3: #2dd4bf; --ds-accent-3-bg: rgba(45,212,191,0.14);
+    --ds-accent-4: #fbbf24; --ds-accent-4-bg: rgba(251,191,36,0.14);
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --ds-brand: #1428a0; --ds-brand-hover: #0f1f80; --ds-brand-active: #0a1660;
+    --ds-brand-fg: #ffffff; --ds-brand-subtle: #eaeefb;
+    --ds-bg: #fbfcfe; --ds-surface: #ffffff; --ds-surface-2: #f2f5fa;
+    --ds-border: #e4e8f0; --ds-border-strong: #c9d0de;
+    --ds-text: #0c1017; --ds-text-muted: #4c5568; --ds-text-subtle: #8a93a5;
+    --ds-success: #16a34a; --ds-success-bg: #f0fdf4;
+    --ds-warning: #d97706; --ds-warning-bg: #fffbeb;
+    --ds-danger: #dc2626; --ds-danger-bg: #fef2f2;
+    --ds-info: #2a5bd7; --ds-info-bg: #eaf0fc;
+    --ds-accent-1: #1428a0; --ds-accent-1-bg: rgba(20,40,160,0.06);
+    --ds-accent-2: #7c3aed; --ds-accent-2-bg: rgba(124,58,237,0.06);
+    --ds-accent-3: #0d9488; --ds-accent-3-bg: rgba(13,148,136,0.06);
+    --ds-accent-4: #d97706; --ds-accent-4-bg: rgba(217,119,6,0.06);
+  }
+
+  /* ========================================================================
+     Editorial chrome (design.md style) — built from tokens above.
+     ===================================================================== */
+  * { box-sizing: border-box; }
+  .sg { background: var(--ds-bg); color: var(--ds-text);
+    font-family: var(--ds-font-sans); font-size: var(--ds-text-md);
+    line-height: 1.6; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  .sg, .sg *:not(pre):not(code) { transition: background-color var(--ds-transition), border-color var(--ds-transition), color var(--ds-transition); }
+  @media (prefers-reduced-motion: reduce) { .sg, .sg * { transition: none !important; } }
+
+  .mono { font-family: var(--ds-font-mono); font-variant-numeric: tabular-nums; }
+  .serif { font-family: var(--ds-font-serif); }
+  .eyebrow { font-family: var(--ds-font-mono); font-size: var(--ds-text-xs);
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--ds-brand); }
+
+  /* Header */
+  .hd { position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--ds-bg) 86%, transparent);
+    backdrop-filter: blur(10px); border-bottom: 1px solid var(--ds-border); }
+  .hd-in { max-width: 1000px; margin: 0 auto; padding: 15px 32px; display: flex; align-items: center; gap: 14px; }
+  .wm { font-family: var(--ds-font-mono); font-size: var(--ds-text-xs); letter-spacing: 0.08em;
+    color: var(--ds-text-muted); text-transform: uppercase; }
+  .wm b { color: var(--ds-brand); font-weight: 600; }
+  .toggle { margin-left: auto; display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--ds-font-mono); font-size: var(--ds-text-xs);
+    padding: 7px 13px; border-radius: var(--ds-radius-full); cursor: pointer;
+    background: var(--ds-surface); color: var(--ds-text-muted); border: 1px solid var(--ds-border-strong); }
+  .toggle:hover { border-color: var(--ds-brand); color: var(--ds-brand); }
+  .toggle:focus-visible { outline: none; box-shadow: var(--ds-focus-ring); }
+
+  main { max-width: 1000px; margin: 0 auto; padding: 0 32px; }
+  .prose { max-width: 64ch; }
+
+  /* Hero */
+  .hero { padding: 96px 0 84px; border-bottom: 1px solid var(--ds-border); }
+  .hero .eyebrow { display: block; margin-bottom: 22px; }
+  .hero h1 { font-family: var(--ds-font-serif); font-weight: 500; letter-spacing: -0.02em;
+    line-height: 1.06; text-wrap: balance; margin: 0 0 26px;
+    font-size: clamp(2.4rem, 6vw, 3.9rem); max-width: 16ch; }
+  .hero h1 .blue { color: var(--ds-brand); font-style: italic; }
+  .hero p { margin: 0; color: var(--ds-text-muted); font-size: var(--ds-text-lg); max-width: 56ch; }
+  .hero .hint { margin-top: 18px; font-size: var(--ds-text-sm); color: var(--ds-text-subtle); }
+
+  /* Section rhythm */
+  section.blk { padding: 84px 0; border-bottom: 1px solid var(--ds-border); }
+  section.blk:last-of-type { border-bottom: none; }
+  .lead { margin-bottom: 44px; }
+  .lead .eyebrow { display: block; margin-bottom: 14px; }
+  .lead h2 { font-family: var(--ds-font-serif); font-weight: 500; letter-spacing: -0.015em;
+    font-size: clamp(1.9rem, 3.5vw, 2.6rem); line-height: 1.12; margin: 0 0 14px; text-wrap: balance; }
+  .lead p { margin: 0; color: var(--ds-text-muted); font-size: var(--ds-text-md); max-width: 60ch; }
+
+  .subhead { font-family: var(--ds-font-mono); font-size: var(--ds-text-xs); letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ds-text-subtle); margin: 40px 0 16px; }
+  .subhead:first-child { margin-top: 0; }
+
+  /* Brand feature block */
+  .brand-feature { display: grid; grid-template-columns: 1.4fr 1fr; gap: 2px;
+    border-radius: var(--ds-radius-lg); overflow: hidden; border: 1px solid var(--ds-border); }
+  .brand-hero { background: var(--ds-brand); color: var(--ds-brand-fg); padding: 40px; min-height: 190px;
+    display: flex; flex-direction: column; justify-content: space-between; }
+  .brand-hero .bn { font-family: var(--ds-font-serif); font-size: 1.7rem; letter-spacing: -0.01em; }
+  .brand-hero .bmeta { font-family: var(--ds-font-mono); font-size: var(--ds-text-sm); opacity: 0.9; }
+  .brand-hero .bmeta .hx { font-size: var(--ds-text-lg); display: block; margin-top: 4px; }
+  .brand-tints { display: grid; grid-template-rows: repeat(3, 1fr); }
+  .brand-tint { display: flex; align-items: center; justify-content: space-between; padding: 0 18px;
+    font-family: var(--ds-font-mono); font-size: var(--ds-text-xs); }
+  .brand-tint .hexval { color: var(--ds-text-subtle); }
+
+  /* Neutral ramp */
+  .ramp { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+  .cell { border: 1px solid var(--ds-border); border-radius: var(--ds-radius-md); overflow: hidden; background: var(--ds-surface); }
+  .cell .sw { height: 72px; box-shadow: inset 0 0 0 1px rgba(120,130,150,0.12); }
+  .cell .cap { padding: 9px 11px; display: flex; flex-direction: column; gap: 2px; }
+  .cell .cn { font-family: var(--ds-font-mono); font-size: var(--ds-text-xs); color: var(--ds-text); }
+  .cell .cv { font-family: var(--ds-font-mono); font-size: 0.6875rem; color: var(--ds-text-subtle); text-transform: uppercase; }
+
+  /* Text hierarchy */
+  .texts { display: flex; flex-direction: column; gap: 10px; }
+  .texts div { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .texts .mono { font-size: var(--ds-text-xs); color: var(--ds-text-subtle); }
+
+  /* Semantic */
+  .sem { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 12px; }
+  .sem .row { display: flex; align-items: center; gap: 11px; padding: 13px 15px; border-radius: var(--ds-radius-md); }
+  .sem .dot { width: 10px; height: 10px; border-radius: var(--ds-radius-full); }
+  .sem .lbl { font-weight: 600; font-size: var(--ds-text-sm); }
+  .sem .hx { margin-left: auto; font-family: var(--ds-font-mono); font-size: 0.6875rem; }
+
+  /* Accent columns + role table */
+  .accents { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+  @media (max-width: 640px) { .accents { grid-template-columns: repeat(2,1fr); } }
+  .acol { border: 1px solid var(--ds-border); border-radius: var(--ds-radius-md); overflow: hidden; }
+  .acol .sw { height: 84px; box-shadow: inset 0 0 0 1px rgba(120,130,150,0.12); }
+  .acol .cap { padding: 9px 11px; }
+  .acol .cn { font-family: var(--ds-font-mono); font-size: var(--ds-text-xs); }
+  .acol .cv { font-family: var(--ds-font-mono); font-size: 0.6875rem; color: var(--ds-text-subtle); text-transform: uppercase; }
+
+  .tbl { overflow-x: auto; border: 1px solid var(--ds-border); border-radius: var(--ds-radius-md); }
+  table.role { width: 100%; border-collapse: collapse; font-size: var(--ds-text-sm); min-width: 520px; }
+  table.role th, table.role td { text-align: left; padding: 11px 15px; border-bottom: 1px solid var(--ds-border); }
+  table.role thead th { background: var(--ds-surface-2); font-family: var(--ds-font-mono);
+    font-size: var(--ds-text-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--ds-text-muted); font-weight: 600; }
+  table.role tbody tr:last-child td { border-bottom: none; }
+  table.role td.slot { display: flex; align-items: center; gap: 9px; }
+  table.role .sq { width: 13px; height: 13px; border-radius: 3px; }
+  table.role .muted { color: var(--ds-text-subtle); }
+
+  /* Type */
+  .tscale { display: flex; flex-direction: column; }
+  .trow { display: flex; align-items: baseline; gap: 20px; padding: 13px 0; border-bottom: 1px solid var(--ds-border); }
+  .trow:last-child { border-bottom: none; }
+  .trow .tg { flex: none; width: 120px; }
+  .trow .tg .n { font-family: var(--ds-font-mono); font-size: var(--ds-text-xs); }
+  .trow .tg .p { font-family: var(--ds-font-mono); font-size: 0.6875rem; color: var(--ds-text-subtle); }
+  .trow .s { font-family: var(--ds-font-serif); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .weights { display: flex; flex-wrap: wrap; gap: 28px; }
+  .weights .w { font-family: var(--ds-font-serif); font-size: var(--ds-text-2xl); }
+  .weights span { display: block; font-family: var(--ds-font-mono); font-size: var(--ds-text-xs); color: var(--ds-text-subtle); }
+
+  /* Space / shape */
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  @media (max-width: 720px) { .cols2 { grid-template-columns: 1fr; gap: 32px; } }
+  .rads { display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-end; }
+  .raditem { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .radbox { width: 66px; height: 66px; background: var(--ds-brand-subtle); border: 1px solid var(--ds-brand); }
+  .rl { font-family: var(--ds-font-mono); font-size: var(--ds-text-xs); color: var(--ds-text-subtle); }
+  .shadows { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; }
+  .shcard { height: 78px; border-radius: var(--ds-radius-lg); background: var(--ds-surface);
+    display: flex; align-items: flex-end; justify-content: center; padding: 9px;
+    font-family: var(--ds-font-mono); font-size: var(--ds-text-xs); color: var(--ds-text-subtle); }
+  .bars { display: flex; flex-direction: column; gap: 9px; }
+  .bar { display: flex; align-items: center; gap: 14px; }
+  .bar .b { height: 14px; background: var(--ds-brand); border-radius: 3px; }
+  .bar .l { font-family: var(--ds-font-mono); font-size: var(--ds-text-xs); color: var(--ds-text-subtle); }
+
+  /* Components */
+  .demos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  @media (max-width: 720px) { .demos { grid-template-columns: 1fr; } }
+  .demo { border: 1px solid var(--ds-border); border-radius: var(--ds-radius-lg);
+    background: var(--ds-surface); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .demo.full { grid-column: 1 / -1; }
+  .demo .subhead { margin: 0; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+  .btn { font-family: var(--ds-font-sans); font-size: var(--ds-text-sm); font-weight: 500;
+    padding: 9px 16px; border-radius: var(--ds-radius-md); border: 1px solid transparent; cursor: pointer; }
+  .btn:focus-visible { outline: none; box-shadow: var(--ds-focus-ring); }
+  .btn-primary { background: var(--ds-brand); color: var(--ds-brand-fg); }
+  .btn-primary:hover { background: var(--ds-brand-hover); }
+  .btn-primary:active { background: var(--ds-brand-active); }
+  .btn-secondary { background: var(--ds-surface); color: var(--ds-text); border-color: var(--ds-border-strong); }
+  .btn-secondary:hover { border-color: var(--ds-brand); color: var(--ds-brand); }
+  .btn-ghost { background: transparent; color: var(--ds-text-muted); }
+  .btn-ghost:hover { background: var(--ds-surface-2); color: var(--ds-text); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .badge { font-size: var(--ds-text-xs); font-weight: 500; padding: 4px 11px;
+    border-radius: var(--ds-radius-full); display: inline-flex; align-items: center; gap: 5px; }
+
+  .dotset { display: flex; flex-direction: column; gap: 11px; }
+  .dotline { display: flex; align-items: center; gap: 10px; font-size: var(--ds-text-sm); }
+  .dotline .d { width: 9px; height: 9px; border-radius: var(--ds-radius-full); }
+  .pulse { position: relative; }
+  .pulse::after { content: ""; position: absolute; inset: -4px; border-radius: var(--ds-radius-full);
+    border: 2px solid var(--ds-accent-1); opacity: 0; animation: pr 1.6s ease-out infinite; }
+  @keyframes pr { 0% { opacity: .6; transform: scale(.6);} 100% { opacity: 0; transform: scale(1.4);} }
+  @media (prefers-reduced-motion: reduce) { .pulse::after { animation: none; } }
+
+  .bubble { border: 1px solid var(--ds-border); border-left-width: 3px; border-radius: var(--ds-radius-md);
+    padding: 12px 14px; font-size: var(--ds-text-sm); }
+  .bubble .bh { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; font-weight: 600; }
+  .bubble .bh .meta { color: var(--ds-text-subtle); font-weight: 400; }
+  .bubble .body { color: var(--ds-text-muted); }
+  .bubble .body .mono { color: var(--ds-text); }
+  .b-analysis { border-left-color: var(--ds-accent-1); background: var(--ds-accent-1-bg); }
+  .b-analysis .who { color: var(--ds-accent-1); }
+  .b-msat { border-left-color: var(--ds-accent-2); background: var(--ds-accent-2-bg); }
+  .b-msat .who { color: var(--ds-accent-2); }
+
+  .timeline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .tnode { height: 32px; min-width: 76px; display: flex; align-items: center; justify-content: center;
+    border-radius: var(--ds-radius-md); font-size: var(--ds-text-xs); font-weight: 500; }
+  .tnode.done { background: var(--ds-accent-2-bg); color: var(--ds-accent-2); }
+  .tnode.active { background: var(--ds-accent-1-bg); color: var(--ds-accent-1); }
+  .tnode.pending { background: var(--ds-surface-2); color: var(--ds-text-subtle); }
+  .tnode.final { background: var(--ds-success-bg); color: var(--ds-success); font-weight: 600; }
+  .tconn { width: 16px; height: 1px; background: var(--ds-border-strong); }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: var(--ds-text-xs); color: var(--ds-text-muted); font-weight: 500; }
+  .input, .select { font-family: inherit; font-size: var(--ds-text-sm); padding: 9px 11px;
+    background: var(--ds-surface); color: var(--ds-text); border: 1px solid var(--ds-border-strong); border-radius: var(--ds-radius-md); }
+  .input:focus, .select:focus { outline: none; box-shadow: var(--ds-focus-ring); border-color: var(--ds-brand); }
+
+  table.data { width: 100%; border-collapse: collapse; font-size: var(--ds-text-xs); }
+  table.data th, table.data td { text-align: left; padding: 8px 11px; border-bottom: 1px solid var(--ds-border); }
+  table.data thead th { background: var(--ds-surface-2); color: var(--ds-text-muted);
+    font-family: var(--ds-font-mono); text-transform: uppercase; letter-spacing: .04em; font-size: 0.6875rem; }
+  table.data td.num { text-align: right; }
+
+  pre.code { margin: 0; overflow-x: auto; background: var(--ds-surface-2); border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-md); padding: 16px 18px; font-family: var(--ds-font-mono);
+    font-size: var(--ds-text-xs); line-height: 1.7; color: var(--ds-text); }
+  pre.code .c { color: var(--ds-text-subtle); }
+  pre.code .k { color: var(--ds-brand); }
+  ul.notes { margin: 22px 0 0; padding-left: 20px; color: var(--ds-text-muted); font-size: var(--ds-text-sm);
+    display: flex; flex-direction: column; gap: 8px; max-width: 64ch; }
+  ul.notes b { color: var(--ds-text); }
+
+  footer.ft { max-width: 1000px; margin: 0 auto; padding: 40px 32px 80px;
+    display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center;
+    color: var(--ds-text-subtle); font-family: var(--ds-font-mono); font-size: var(--ds-text-xs); }
+  footer.ft b { color: var(--ds-brand); }
+</style>
+
+<div class="sg">
+  <header class="hd">
+    <div class="hd-in">
+      <span class="wm">Golden Batch × Deviation Review · <b>Design System</b></span>
+      <button class="toggle" id="themeBtn" type="button" aria-label="Toggle color theme">
+        <span id="themeIcon">◐</span><span id="themeLabel">System</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <span class="eyebrow">Shared design system · v1.1.0</span>
+      <h1>One visual language, spoken in <span class="blue">Samsung Blue</span>.</h1>
+      <p>Two products ship on their own schedules — Golden Batch Multi-Agent and Deviation
+      Review — yet read as one family, because both draw from a single set of tokens and never
+      hardcode a color.</p>
+      <p class="hint">Toggle the theme (top-right). Every swatch and component below repaints from
+      the same variables, and the hex readouts update live.</p>
+    </div>
+
+    <!-- COLOR -->
+    <section class="blk">
+      <div class="lead">
+        <span class="eyebrow">Foundations</span>
+        <h2>Color is a role, not a hex.</h2>
+        <p>Products reference semantic roles; the palette resolves per theme. The hex shown is the
+        currently computed value for the active theme.</p>
+      </div>
+
+      <div class="subhead">Brand — Samsung Blue</div>
+      <div class="brand-feature">
+        <div class="brand-hero">
+          <div class="bn serif">Samsung Blue</div>
+          <div class="bmeta">--ds-brand<span class="hx hexval" data-token="--ds-brand"></span></div>
+        </div>
+        <div class="brand-tints">
+          <div class="brand-tint" style="background:var(--ds-brand-hover); color:#fff;"><span>hover</span><span class="hexval" style="color:rgba(255,255,255,.75)" data-token="--ds-brand-hover"></span></div>
+          <div class="brand-tint" style="background:var(--ds-brand-active); color:#fff;"><span>active</span><span class="hexval" style="color:rgba(255,255,255,.75)" data-token="--ds-brand-active"></span></div>
+          <div class="brand-tint" style="background:var(--ds-brand-subtle); color:var(--ds-brand);"><span>subtle</span><span class="hexval" data-token="--ds-brand-subtle"></span></div>
+        </div>
+      </div>
+
+      <div class="subhead">Surfaces &amp; borders</div>
+      <div class="ramp" id="ramp"></div>
+
+      <div class="subhead">Text — three levels</div>
+      <div class="texts">
+        <div><span style="color:var(--ds-text); font-family:var(--ds-font-serif); font-size:var(--ds-text-xl);">Primary — titles &amp; key values</span><span class="mono">--ds-text</span></div>
+        <div><span style="color:var(--ds-text-muted); font-size:var(--ds-text-md);">Muted — descriptions, table body, meta</span><span class="mono">--ds-text-muted</span></div>
+        <div><span style="color:var(--ds-text-subtle); font-size:var(--ds-text-md);">Subtle — placeholders, hints, captions</span><span class="mono">--ds-text-subtle</span></div>
+      </div>
+
+      <div class="subhead">Semantic status — meaning, never decoration</div>
+      <div class="sem" id="sem"></div>
+
+      <div class="subhead">Role accents — generic slots, product-assigned meaning</div>
+      <div class="accents" id="accents"></div>
+      <div class="tbl">
+        <table class="role">
+          <thead><tr><th>Slot</th><th>Golden Batch</th><th>Deviation Review <span class="muted">(proposed)</span></th></tr></thead>
+          <tbody id="roleBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TYPOGRAPHY -->
+    <section class="blk">
+      <div class="lead">
+        <span class="eyebrow">Foundations</span>
+        <h2>A serif that states, a sans that operates.</h2>
+        <p>Serif display carries the editorial voice; system sans runs the interface; a mono utility
+        face holds identifiers and values. Base UI size is 14px — these are dense, data-forward tools.</p>
+      </div>
+      <div class="tscale" id="tscale"></div>
+      <div class="cols2" style="margin-top:40px;">
+        <div>
+          <div class="subhead">Weights</div>
+          <div class="weights">
+            <div><div class="w" style="font-weight:400;">Aa</div><span>400 Normal</span></div>
+            <div><div class="w" style="font-weight:500;">Aa</div><span>500 Medium</span></div>
+            <div><div class="w" style="font-weight:600;">Aa</div><span>600 Semibold</span></div>
+            <div><div class="w" style="font-weight:700;">Aa</div><span>700 Bold</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="subhead">Mono utility face</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <span class="mono" style="font-size:var(--ds-text-md);">[prd_final]VCD_BI</span>
+            <span class="mono" style="font-size:var(--ds-text-md);">mean|SHAP| = 0.184 · p = 0.0031</span>
+            <span class="mono" style="font-size:var(--ds-text-md);">Product. Yield = 78.4 g</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPACE / SHAPE -->
+    <section class="blk">
+      <div class="lead">
+        <span class="eyebrow">Foundations</span>
+        <h2>Structure, quietly kept.</h2>
+        <p>Prefer borders over shadows for flat panels; reserve elevation for what floats. Spacing
+        rides a 4-based scale.</p>
+      </div>
+      <div class="cols2">
+        <div>
+          <div class="subhead">Radius</div>
+          <div class="rads">
+            <div class="raditem"><div class="radbox" style="border-radius:var(--ds-radius-sm);"></div><span class="rl">sm · 4</span></div>
+            <div class="raditem"><div class="radbox" style="border-radius:var(--ds-radius-md);"></div><span class="rl">md · 8</span></div>
+            <div class="raditem"><div class="radbox" style="border-radius:var(--ds-radius-lg);"></div><span class="rl">lg · 12</span></div>
+            <div class="raditem"><div class="radbox" style="border-radius:var(--ds-radius-full);"></div><span class="rl">full</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="subhead">Elevation</div>
+          <div class="shadows">
+            <div class="shcard" style="box-shadow:var(--ds-shadow-sm);">sm</div>
+            <div class="shcard" style="box-shadow:var(--ds-shadow-md);">md</div>
+            <div class="shcard" style="box-shadow:var(--ds-shadow-lg);">lg</div>
+          </div>
+        </div>
+      </div>
+      <div class="subhead">Spacing scale</div>
+      <div class="bars" id="bars"></div>
+    </section>
+
+    <!-- COMPONENTS -->
+    <section class="blk">
+      <div class="lead">
+        <span class="eyebrow">Library</span>
+        <h2>The same parts, in both apps.</h2>
+        <p>Each product implements these; token references keep them identical. Every interactive
+        element defines default / hover / active / focus / disabled.</p>
+      </div>
+      <div class="demos">
+        <div class="demo">
+          <div class="subhead">Buttons</div>
+          <div class="row">
+            <button class="btn btn-primary">Run</button>
+            <button class="btn btn-secondary">Cancel</button>
+            <button class="btn btn-ghost">Details</button>
+          </div>
+          <div class="row"><button class="btn btn-primary" disabled>Running…</button></div>
+        </div>
+        <div class="demo">
+          <div class="subhead">Badges</div>
+          <div class="row">
+            <span class="badge" style="background:var(--ds-accent-1-bg); color:var(--ds-accent-1);">🧮 Analysis</span>
+            <span class="badge" style="background:var(--ds-accent-2-bg); color:var(--ds-accent-2);">🧠 MSAT</span>
+          </div>
+          <div class="row">
+            <span class="badge" style="background:var(--ds-success-bg); color:var(--ds-success);">Passed</span>
+            <span class="badge" style="background:var(--ds-warning-bg); color:var(--ds-warning);">Pending</span>
+            <span class="badge" style="background:var(--ds-danger-bg); color:var(--ds-danger);">Overdue</span>
+          </div>
+        </div>
+        <div class="demo">
+          <div class="subhead">Status dots</div>
+          <div class="dotset">
+            <div class="dotline"><span class="d" style="background:var(--ds-accent-2);"></span> Completed</div>
+            <div class="dotline"><span class="d pulse" style="background:var(--ds-accent-1);"></span> In progress</div>
+            <div class="dotline"><span class="d" style="background:var(--ds-text-subtle);"></span> Pending</div>
+          </div>
+        </div>
+        <div class="demo">
+          <div class="subhead">Inputs</div>
+          <div class="field"><label for="f1">Max iteration</label><input class="input" id="f1" type="text" value="4" /></div>
+          <div class="field"><label for="f2">AutoML framework</label><select class="select" id="f2"><option>AutoGluon</option><option>H2O AutoML</option></select></div>
+        </div>
+        <div class="demo full">
+          <div class="subhead">Entity bubbles — accent slot = identity</div>
+          <div class="cols2" style="gap:16px;">
+            <div class="bubble b-analysis">
+              <div class="bh"><span>🧮</span><span class="who">Analysis</span><span class="meta">· iter 1 · shap_analysis</span></div>
+              <div class="body">Top feature <span class="mono">[prd_final]VCD_BI</span>, mean|SHAP| <span class="mono">0.184</span>, direction negative.</div>
+            </div>
+            <div class="bubble b-msat">
+              <div class="bh"><span>🧠</span><span class="who">MSAT</span><span class="meta">· iter 1</span></div>
+              <div class="body">Peak viable cell density drives yield variance. Per <span class="mono">CPP-CQA Matrix</span>, verify pH excursion next.</div>
+            </div>
+          </div>
+        </div>
+        <div class="demo full">
+          <div class="subhead">Iteration timeline</div>
+          <div class="timeline">
+            <div class="tnode done">Iter 1</div><div class="tconn"></div>
+            <div class="tnode done">Iter 2</div><div class="tconn"></div>
+            <div class="tnode active">Iter 3</div><div class="tconn"></div>
+            <div class="tnode pending">Iter 4</div><div class="tconn"></div>
+            <div class="tnode final">Final</div>
+          </div>
+        </div>
+        <div class="demo full">
+          <div class="subhead">Data table — mono + tabular-nums</div>
+          <div style="overflow-x:auto;">
+            <table class="data">
+              <thead><tr><th>Batch_No</th><th>VCD_BI</th><th>pH_BI</th><th class="num">Yield (g)</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">B2401</td><td class="mono">15.2</td><td class="mono">6.82</td><td class="mono num">84.1</td><td><span class="badge" style="background:var(--ds-success-bg); color:var(--ds-success);">Golden</span></td></tr>
+                <tr><td class="mono">B2402</td><td class="mono">11.8</td><td class="mono">6.97</td><td class="mono num">70.3</td><td><span class="badge" style="background:var(--ds-warning-bg); color:var(--ds-warning);">Low</span></td></tr>
+                <tr><td class="mono">B2403</td><td class="mono">14.0</td><td class="mono">6.88</td><td class="mono num">79.6</td><td><span class="badge" style="background:var(--ds-info-bg); color:var(--ds-info);">Normal</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADOPTION -->
+    <section class="blk">
+      <div class="lead">
+        <span class="eyebrow">Handover</span>
+        <h2>Adopt in three moves.</h2>
+        <p>Vendor <span class="mono">tokens.css</span>, import once, reference <span class="mono">var(--ds-*)</span>.
+        Tailwind users bridge the vars in config.</p>
+      </div>
+      <pre class="code"><span class="c">/* app globals — import the shared tokens once */</span>
+<span class="k">@import</span> "../design-system/tokens.css";
+body { background: <span class="k">var</span>(--ds-bg); color: <span class="k">var</span>(--ds-text); font-family: <span class="k">var</span>(--ds-font-sans); }
+
+<span class="c">// tailwind.config.ts — bridge tokens so utilities theme automatically</span>
+colors: {
+  brand:   "<span class="k">var</span>(--ds-brand)",   <span class="c">// Samsung Blue #1428A0</span>
+  surface: "<span class="k">var</span>(--ds-surface)",
+  "accent-1": "<span class="k">var</span>(--ds-accent-1)", <span class="c">// Analysis</span>
+  "accent-2": "<span class="k">var</span>(--ds-accent-2)", <span class="c">// MSAT</span>
+}</pre>
+      <ul class="notes">
+        <li><b>Map, don't add.</b> Product entities take a generic accent slot (1–4); status always uses semantic tokens.</li>
+        <li><b>Both themes.</b> Honor <span class="mono">prefers-color-scheme</span> and <span class="mono">:root[data-theme]</span>; never encode meaning by color alone.</li>
+        <li><b>Govern by version.</b> Edit <span class="mono">tokens.css</span> + <span class="mono">tokens.json</span> together, bump <span class="mono">--ds-version</span>; a change is DS-worthy only if both products benefit.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="ft">
+    <span><b>design-system/</b> · v1.1.0 · Samsung Blue</span>
+    <span>Golden Batch Multi-Agent</span><span>·</span><span>Deviation Review</span>
+    <span style="margin-left:auto;" id="themeState">theme: system</span>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var surfaces = [
+      ["--ds-bg", "bg"], ["--ds-surface", "surface"], ["--ds-surface-2", "surface-2"],
+      ["--ds-border", "border"], ["--ds-border-strong", "border-strong"]
+    ];
+    var accents = [
+      ["--ds-accent-1", "accent-1"], ["--ds-accent-2", "accent-2"],
+      ["--ds-accent-3", "accent-3"], ["--ds-accent-4", "accent-4"]
+    ];
+    var statuses = [
+      ["--ds-success", "Success"], ["--ds-warning", "Warning"],
+      ["--ds-danger", "Danger"], ["--ds-info", "Info"]
+    ];
+    var roleRows = [
+      ["--ds-accent-1", "accent-1", "🧮 Analysis Agent", "Investigation / data"],
+      ["--ds-accent-2", "accent-2", "🧠 MSAT Agent", "Assessment / SME"],
+      ["--ds-accent-3", "accent-3", "reserved", "CAPA / resolution"],
+      ["--ds-accent-4", "accent-4", "reserved", "Open / pending"]
+    ];
+    var typeSizes = [
+      ["--ds-text-2xl", "2xl", "28"], ["--ds-text-xl", "xl", "22"], ["--ds-text-lg", "lg", "18"],
+      ["--ds-text-md", "md", "15"], ["--ds-text-base", "base", "14"], ["--ds-text-sm", "sm", "13"], ["--ds-text-xs", "xs", "12"]
+    ];
+    var spaces = [["1",4],["2",8],["3",12],["4",16],["6",24],["8",32]];
+
+    function el(t, c, h) { var e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; }
+
+    (function () {
+      var host = document.getElementById("ramp");
+      surfaces.forEach(function (it) {
+        var cell = el("div", "cell");
+        var sw = el("div", "sw"); sw.style.background = "var(" + it[0] + ")";
+        var cap = el("div", "cap");
+        cap.appendChild(el("div", "cn", it[1]));
+        var v = el("div", "cv hexval"); v.setAttribute("data-token", it[0]); cap.appendChild(v);
+        cell.appendChild(sw); cell.appendChild(cap); host.appendChild(cell);
+      });
+    })();
+
+    (function () {
+      var host = document.getElementById("accents");
+      accents.forEach(function (it) {
+        var col = el("div", "acol");
+        var sw = el("div", "sw"); sw.style.background = "var(" + it[0] + ")";
+        var cap = el("div", "cap");
+        cap.appendChild(el("div", "cn", it[1]));
+        var v = el("div", "cv hexval"); v.setAttribute("data-token", it[0]); cap.appendChild(v);
+        col.appendChild(sw); col.appendChild(cap); host.appendChild(col);
+      });
+    })();
+
+    (function () {
+      var host = document.getElementById("sem");
+      statuses.forEach(function (s) {
+        var row = el("div", "row"); row.style.background = "var(" + s[0] + "-bg)";
+        var dot = el("span", "dot"); dot.style.background = "var(" + s[0] + ")";
+        var lbl = el("span", "lbl", s[1]); lbl.style.color = "var(" + s[0] + ")";
+        var hx = el("span", "hx hexval"); hx.setAttribute("data-token", s[0]); hx.style.color = "var(" + s[0] + ")";
+        row.appendChild(dot); row.appendChild(lbl); row.appendChild(hx); host.appendChild(row);
+      });
+    })();
+
+    (function () {
+      var host = document.getElementById("roleBody");
+      roleRows.forEach(function (r) {
+        var tr = el("tr");
+        var td0 = el("td", "slot");
+        var sq = el("span", "sq"); sq.style.background = "var(" + r[0] + ")";
+        td0.appendChild(sq); td0.appendChild(el("span", "mono", r[1]));
+        tr.appendChild(td0);
+        tr.appendChild(el("td", null, r[2]));
+        tr.appendChild(el("td", r[3] === "reserved" ? "muted" : null, r[3]));
+        host.appendChild(tr);
+      });
+    })();
+
+    (function () {
+      var host = document.getElementById("tscale");
+      typeSizes.forEach(function (t) {
+        var row = el("div", "trow");
+        var tg = el("div", "tg");
+        tg.appendChild(el("div", "n", t[1])); tg.appendChild(el("div", "p", t[2] + "px"));
+        var s = el("div", "s", "Golden Batch · Deviation Review");
+        s.style.fontSize = "var(" + t[0] + ")";
+        s.style.fontWeight = (parseInt(t[2]) >= 18) ? "500" : "400";
+        row.appendChild(tg); row.appendChild(s); host.appendChild(row);
+      });
+    })();
+
+    (function () {
+      var host = document.getElementById("bars");
+      spaces.forEach(function (sp) {
+        var row = el("div", "bar");
+        var b = el("div", "b"); b.style.width = sp[1] + "px";
+        row.appendChild(b); row.appendChild(el("span", "l", "space-" + sp[0] + " · " + sp[1] + "px"));
+        host.appendChild(row);
+      });
+    })();
+
+    function refreshHex() {
+      var cs = getComputedStyle(root);
+      document.querySelectorAll(".hexval").forEach(function (n) {
+        n.textContent = (cs.getPropertyValue(n.getAttribute("data-token")).trim() || "—");
+      });
+    }
+
+    var order = ["system", "light", "dark"], icons = { system: "◐", light: "☀", dark: "☾" }, idx = 0;
+    var btn = document.getElementById("themeBtn");
+    function apply() {
+      var m = order[idx];
+      if (m === "system") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", m);
+      document.getElementById("themeIcon").textContent = icons[m];
+      document.getElementById("themeLabel").textContent = m.charAt(0).toUpperCase() + m.slice(1);
+      document.getElementById("themeState").textContent = "theme: " + m;
+      requestAnimationFrame(refreshHex);
+    }
+    btn.addEventListener("click", function () { idx = (idx + 1) % order.length; apply(); });
+    if (window.matchMedia) {
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
+        if (order[idx] === "system") requestAnimationFrame(refreshHex);
+      });
+    }
+    apply(); refreshHex();
+  })();
+</script>
