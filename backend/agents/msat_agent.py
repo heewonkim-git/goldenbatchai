@@ -1,76 +1,188 @@
 """MSAT Agent — Claude + RAG interpretation (PRD §7).
 
-M2 stub: no API call yet, but drives a coherent tool sequence over the REAL
-Analysis evidence so the demo tells a story (SHAP driver -> pH excursion test ->
-correlation -> stop). Real Anthropic call + RAG citations arrive in M4.
+M4: real Anthropic call. The MSAT Agent reads the Analysis Agent's quantitative
+evidence, retrieves grounding passages from the CDMO knowledge base (RAG), and
+returns a structured interpretation + hypothesis + next action, citing only the
+retrieved documents. Falls back to a scripted stub when no API key is set or the
+call fails, so the demo always runs.
 """
 from __future__ import annotations
 
-from typing import Any
+import json
+from typing import Any, Literal, Optional
 
-from schemas import AnalysisEvidence, Citation, MsatResult, NextAction
+from pydantic import BaseModel, Field
+
 from config import settings
+from rag.store import store
+from schemas import AnalysisEvidence, Citation, MsatResult, NextAction
 
 PH_FEATURE = "[prd_final]pH_BI"
+ALLOWED_TOOLS = [
+    "statistical_test", "correlation_analysis", "feature_selection",
+    "shap_analysis", "model_compare", "remove_multicollinearity",
+]
+
+SYSTEM = """You are an MSAT (Manufacturing Science & Technology) process expert for a mAb CDMO.
+An Analysis Agent gives you QUANTITATIVE ML evidence (SHAP, model RMSE, p-values, correlations).
+Your job: interpret that evidence in process terms, ground every claim in the provided knowledge-base
+excerpts, form/refine ONE hypothesis about what drives yield, and decide the next analysis step.
+
+Rules:
+- Cite ONLY the provided document excerpts. Never invent a document, section, or number.
+- The evidence is the source of truth for numbers; the documents explain their process meaning.
+- Choose next_action.type = "stop" when the evidence across steps is consistent and a Golden Batch
+  recommendation can be made, or when you have no better analysis to request. Otherwise "re_analysis"
+  with one tool from the allowed list and concrete params (use real feature names from the evidence).
+- Be concise and specific. No hedging, no restating the raw numbers verbatim."""
 
 
-def _top_feature(evidence: AnalysisEvidence) -> str | None:
-    tf = (evidence.evidence or {}).get("top_features") if evidence else None
-    if tf:
-        return tf[0].get("feature")
-    agg = (evidence.evidence or {}).get("aggregated_rank") if evidence else None
-    if agg:
-        return agg[0].get("feature")
-    return None
+class MsatLLM(BaseModel):
+    interpretation: str = Field(description="Process interpretation of the evidence, 1-3 sentences.")
+    hypothesis: str = Field(description="One concrete, testable hypothesis about a yield driver.")
+    confidence: Literal["low", "medium", "high"]
+    citations: list[Citation] = Field(default_factory=list)
+    next_action: NextAction
+
+
+def _extract_json(text: str) -> dict[str, Any]:
+    """Pull the first JSON object out of an LLM response (tolerates code fences)."""
+    t = text.strip()
+    if t.startswith("```"):
+        t = t.split("```", 2)[1]
+        if t.startswith("json"):
+            t = t[4:]
+    start, end = t.find("{"), t.rfind("}")
+    if start == -1 or end == -1:
+        raise ValueError("no JSON object in MSAT response")
+    return json.loads(t[start : end + 1])
+
+
+def _query(evidence: AnalysisEvidence, target: str) -> str:
+    parts = [evidence.tool, target, "yield CPP golden batch"]
+    ev = evidence.evidence or {}
+    for key in ("top_features", "aggregated_rank"):
+        for row in (ev.get(key) or [])[:4]:
+            if isinstance(row, dict) and row.get("feature"):
+                parts.append(row["feature"])
+    if evidence.tool == "statistical_test":
+        parts.append("pH excursion group difference")
+    return " ".join(parts)
 
 
 def interpret(iteration: int, evidence: AnalysisEvidence, max_iteration: int) -> MsatResult:
-    note = "" if settings.has_api_key else "  [stub — no LLM call]"
+    target = evidence.target or "yield"
+    if not settings.has_api_key:
+        return _stub_interpret(iteration, evidence, max_iteration)
+    try:
+        return _claude_interpret(iteration, evidence, max_iteration, target)
+    except Exception as exc:  # never break the run on an LLM/parse error
+        res = _stub_interpret(iteration, evidence, max_iteration)
+        res.interpretation = f"[LLM error, stub fallback: {exc}] " + res.interpretation
+        return res
+
+
+def _claude_interpret(iteration: int, evidence: AnalysisEvidence, max_iteration: int,
+                      target: str) -> MsatResult:
+    import anthropic
+
+    chunks = store.search(_query(evidence, target), k=5)
+    kb = "\n\n".join(f"[{c.doc} :: {c.section}]\n{c.text[:900]}" for c in chunks) or "(none)"
+    forced_stop = iteration >= max_iteration
+
+    user = f"""Iteration {iteration} of {max_iteration}. Target CQA: {target}
+
+## Analysis evidence (tool: {evidence.tool})
+{json.dumps(evidence.evidence, ensure_ascii=False)[:4000]}
+
+## Knowledge-base excerpts (cite these; doc :: section)
+{kb}
+
+## Allowed next-action tools
+{", ".join(ALLOWED_TOOLS)}
+
+{"This is the final iteration — set next_action.type to 'stop' and give the Golden Batch recommendation."
+   if forced_stop else "Decide whether to stop (enough evidence) or request one more analysis."}
+Return the structured object. Put each cited passage's doc and section in citations."""
+
+    user += (
+        "\n\nRespond with ONLY a JSON object (no prose, no markdown fences) of shape:\n"
+        '{"interpretation": str, "hypothesis": str, "confidence": "low|medium|high", '
+        '"citations": [{"doc": str, "section": str, "quote": str}], '
+        '"next_action": {"type": "re_analysis|stop", "tool": str|null, '
+        '"params": {}, "rationale": str}}'
+    )
+
+    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    resp = client.messages.create(
+        model=settings.msat_model,
+        max_tokens=1500,
+        system=SYSTEM,
+        messages=[{"role": "user", "content": user}],
+    )
+    text = "".join(b.text for b in resp.content if getattr(b, "type", None) == "text")
+    out = MsatLLM(**_extract_json(text))
+    action = out.next_action
+    if forced_stop:
+        action = NextAction(type="stop", rationale=action.rationale or "Final iteration.")
+    elif action.type == "re_analysis" and action.tool not in ALLOWED_TOOLS:
+        action.tool = "statistical_test"
+
+    return MsatResult(
+        iteration=iteration,
+        interpretation=out.interpretation,
+        hypothesis=out.hypothesis,
+        confidence=out.confidence,
+        citations=out.citations,
+        next_action=action,
+    )
+
+
+# --- Scripted fallback (no API key / error) ---------------------------------
+
+def _top_feature(evidence: AnalysisEvidence) -> Optional[str]:
+    ev = evidence.evidence or {}
+    for key in ("top_features", "aggregated_rank"):
+        rows = ev.get(key)
+        if rows:
+            return rows[0].get("feature")
+    return None
+
+
+def _stub_interpret(iteration: int, evidence: AnalysisEvidence, max_iteration: int) -> MsatResult:
+    note = "  [stub — no LLM call]"
     top = _top_feature(evidence) or "the top-ranked feature"
     is_last = iteration >= max_iteration
 
     if iteration == 1 and not is_last:
         return MsatResult(
             iteration=iteration,
-            interpretation=(f"SHAP ranks {top} as the strongest driver of yield. Per the "
-                            f"CPP-CQA Matrix this is a High-criticality CPP." + note),
-            hypothesis=f"{top} drives yield; low-yield batches may also show a pH excursion above 6.9.",
+            interpretation=f"SHAP ranks {top} as the strongest yield driver; a High-criticality CPP." + note,
+            hypothesis=f"{top} drives yield; low-yield batches may also show pH excursion above 6.9.",
             confidence="medium",
-            citations=[Citation(doc="CPP-CQA Matrix", section="CPP ↔ Product. Yield"),
-                       Citation(doc="Process Control Strategy", section="pH deadband")],
-            next_action=NextAction(
-                type="re_analysis", tool="statistical_test",
-                params={"feature": PH_FEATURE, "group_rule": "threshold", "threshold": 6.9},
-                rationale="Test whether batches with pH_BI > 6.9 show significantly lower yield.",
-            ),
+            citations=[Citation(doc="CPP-CQA Matrix", section="CPP ↔ Product. Yield")],
+            next_action=NextAction(type="re_analysis", tool="statistical_test",
+                                   params={"feature": PH_FEATURE, "group_rule": "threshold", "threshold": 6.9},
+                                   rationale="Test whether pH_BI > 6.9 batches show lower yield."),
         )
-
     if iteration == 2 and not is_last:
         p = (evidence.evidence or {}).get("p_value")
-        supported = p is not None and p < 0.05
         return MsatResult(
             iteration=iteration,
-            interpretation=(f"Group test {'supports' if supported else 'is inconclusive on'} the pH "
-                            f"hypothesis (p={p}). Checking whether pH co-varies with over-feeding." + note),
+            interpretation=f"Group test {'supports' if (p is not None and p < 0.05) else 'is inconclusive on'} the pH hypothesis (p={p})." + note,
             hypothesis="High pH combined with glucose over-feeding concentrates yield loss.",
-            confidence="high" if supported else "medium",
-            citations=[Citation(doc="Troubleshooting Guide", section="over-feeding → pH drift"),
-                       Citation(doc="CPP-CQA Matrix", section="Interaction Effects")],
-            next_action=NextAction(
-                type="re_analysis", tool="correlation_analysis",
-                params={"method": "spearman"},
-                rationale="Quantify correlation of pH and glucose feed with yield.",
-            ),
+            confidence="high" if (p is not None and p < 0.05) else "medium",
+            citations=[Citation(doc="Troubleshooting Guide", section="over-feeding → pH drift")],
+            next_action=NextAction(type="re_analysis", tool="correlation_analysis",
+                                   params={"method": "spearman"},
+                                   rationale="Quantify pH and glucose correlation with yield."),
         )
-
-    # Final iteration (or forced stop).
     return MsatResult(
         iteration=iteration,
         interpretation="Evidence is consistent across SHAP, group test, and correlation." + note,
-        hypothesis=("Golden Batch window: keep pH_BI 6.7–6.9, avoid glucose over-feeding, and "
-                    "maintain high VCD_BI with a strong O2 supply ramp."),
+        hypothesis=("Golden Batch window: keep pH_BI 6.7–6.9, avoid glucose over-feeding, maintain "
+                    "high VCD_BI with a strong O2 supply ramp."),
         confidence="high",
-        citations=[Citation(doc="Golden Batch Criteria", section="Parameter windows"),
-                   Citation(doc="Golden Batch Report", section="Recommended window")],
+        citations=[Citation(doc="Golden Batch Criteria", section="Parameter windows")],
         next_action=NextAction(type="stop", rationale="Hypothesis confirmed across methods."),
     )

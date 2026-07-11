@@ -12,7 +12,7 @@ See **[PRD.md](./PRD.md)** for the full spec (architecture, tools, feature taxon
 
 ---
 
-## Status — M0 ✅ · M1 ✅ · M2 ✅
+## Status — M0 ✅ · M1 ✅ · M2 ✅ · M3 ✅ · M4 ✅
 
 - **M0 scaffolding** — FastAPI backend (`/api/health`, `POST /api/runs`, SSE events) + Next.js
   3-panel SPA, wired end-to-end. Orchestrator runs the real iteration loop (state machine +
@@ -26,7 +26,14 @@ See **[PRD.md](./PRD.md)** for the full spec (architecture, tools, feature taxon
   `model_compare`, `remove_multicollinearity`, `statistical_test`, `correlation_analysis` —
   all on the seed data, returning quantitative evidence only (`interpretation` forced null).
   End-to-end the loop recovers the planted ground truth (VCD_BI driver, pH>6.9 → p≈0.003).
-  MSAT still drives a scripted-but-coherent sequence (real Claude + RAG = M4).
+- **M3 RAG** — `knowledge_base/*.md` chunked by H2/H3 heading; lightweight TF keyword
+  retrieval (no embedding deps), swappable later. `rag/store.py`.
+- **M4 MSAT Agent (real Claude)** — `agents/msat_agent.py` calls the Anthropic API
+  (`claude-opus-4-8`), grounds its interpretation in retrieved KB passages, returns a
+  structured hypothesis + citations + next action, and drives the loop. Verified
+  end-to-end with a real key: it reads the actual SHAP/stat evidence, cites the CDMO
+  docs, and converges on the Golden Batch window. Falls back to a scripted stub when no
+  key is set, so the demo always runs.
 - **Design system** — shared, product-agnostic tokens (`design-system/`, Samsung Blue v1.1.0) with
   a live style guide; the frontend consumes them and matches the guide in light and dark.
 
@@ -80,5 +87,5 @@ data/                        seed dataset (added in M1)
 ## Roadmap
 
 M0 scaffolding ✅ · M1 KB + seed data ✅ · M2 Analysis Agent (real ML) ✅ ·
-M3 RAG · M4 MSAT Agent (Claude) · M5 orchestrator polish · M6 frontend polish ·
+M3 RAG ✅ · M4 MSAT Agent (Claude) ✅ · M5 orchestrator polish · M6 frontend polish ·
 M7 seed scenario · M8 demo rehearsal. (Details in PRD §14.)
