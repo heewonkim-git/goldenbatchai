@@ -6,7 +6,7 @@ services:
     name: goldenbatch-backend
     runtime: python
     rootDir: backend
-    plan: starter            # 512MB; bump to standard if SHAP/xgboost OOMs
+    plan: free               # no card needed; sleeps when idle (cold start). Bump to starter/standard if SHAP OOMs.
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
