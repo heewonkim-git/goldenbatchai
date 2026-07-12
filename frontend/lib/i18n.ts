@@ -23,9 +23,11 @@ const EN: Dict = {
   act_starting: "Starting…",
   act_analysis: "Analysis · {tool}…",
   act_msat: "MSAT retrieving docs & interpreting…",
-  notes_title: "Statistical methods — notes",
+  notes_title: "Method & model notes",
   notes_btn: "Method notes",
   notes_intro: "Quick reference for every analysis in the pipeline. Formulas in mint.",
+  notes_tab_methods: "Analysis methods",
+  notes_tab_models: "Models",
   settings_title: "Agent Settings",
 };
 
@@ -46,9 +48,11 @@ const KO: Dict = {
   act_starting: "시작 중…",
   act_analysis: "분석 · {tool}…",
   act_msat: "MSAT 문서 검색·해석 중…",
-  notes_title: "통계 기법 — 노트",
+  notes_title: "기법 · 모델 — 노트",
   notes_btn: "기법 설명",
   notes_intro: "파이프라인의 모든 분석 기법 요약입니다. 수식은 민트색으로 강조했습니다.",
+  notes_tab_methods: "분석 기법",
+  notes_tab_models: "모델",
   settings_title: "에이전트 설정",
 };
 

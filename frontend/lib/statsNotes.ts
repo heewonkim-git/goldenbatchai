@@ -9,6 +9,62 @@ export interface MethodNote {
   ko: { what: string; read: string };
 }
 
+// The ML models on the AutoML leaderboard / model comparison.
+export const MODEL_NOTES: MethodNote[] = [
+  {
+    key: "RandomForest",
+    name: "Random Forest",
+    formula: "ŷ(x) = (1/B) Σ_b Tᵦ(x)     (bagging: bootstrap samples + random feature subsets)",
+    en: {
+      what: "An ensemble of decision trees, each trained on a bootstrap sample of rows and a random subset of features. Predictions are averaged.",
+      read: "Averaging de-correlated trees lowers variance, so it is robust and rarely overfits. Strong baseline; less sharp than boosting on subtle interactions.",
+    },
+    ko: {
+      what: "여러 decision tree의 ensemble로, 각 tree는 행을 bootstrap 샘플링하고 feature도 무작위로 일부만 써서 학습합니다. 예측은 평균냅니다.",
+      read: "서로 덜 상관된 tree를 평균내 variance를 낮추므로 robust하고 overfitting이 드뭅니다. 강한 baseline이지만 미묘한 interaction은 boosting보다 덜 예리합니다.",
+    },
+  },
+  {
+    key: "GradientBoosting",
+    name: "Gradient Boosting",
+    formula: "Fₘ(x) = Fₘ₋₁(x) + ν · hₘ(x),   hₘ ≈ −∂L/∂F   (ν = learning_rate)",
+    en: {
+      what: "Builds trees sequentially; each new tree fits the negative gradient (residual) of the loss left by the current ensemble.",
+      read: "Learns subtle patterns by correcting its own mistakes. Sensitive to learning_rate × n_estimators and can overfit if too deep / too many trees.",
+    },
+    ko: {
+      what: "tree를 순차적으로 쌓으며, 새 tree는 현재 ensemble이 남긴 loss의 음의 gradient(residual)를 학습합니다.",
+      read: "자신의 오차를 교정하며 미묘한 패턴을 학습합니다. learning_rate × n_estimators에 민감하고, 너무 깊거나 tree가 많으면 overfitting될 수 있습니다.",
+    },
+  },
+  {
+    key: "XGBoost",
+    name: "XGBoost",
+    formula: "Obj = Σ l(yᵢ, ŷᵢ) + Σₖ Ω(fₖ),   Ω(f) = γT + ½λ‖w‖²   (2nd-order / Newton)",
+    en: {
+      what: "Regularized gradient boosting that uses both gradient and hessian (2nd-order) to choose splits, with L1/L2 penalties on leaf weights.",
+      read: "Very accurate on tabular data; the regularization term (γ, λ) controls complexity. Usually the top or near-top model on the leaderboard.",
+    },
+    ko: {
+      what: "정규화된 gradient boosting으로, split을 고를 때 gradient와 hessian(2차)을 함께 쓰고 leaf 가중치에 L1/L2 penalty를 줍니다.",
+      read: "tabular 데이터에서 매우 정확합니다. 정규화 항(γ, λ)이 복잡도를 제어합니다. 보통 leaderboard 상위권 모델입니다.",
+    },
+  },
+  {
+    key: "LightGBM",
+    name: "LightGBM",
+    formula: "histogram binning + leaf-wise growth (GOSS, EFB)   →   split by max Δloss leaf",
+    en: {
+      what: "Gradient boosting that bins features into histograms and grows trees leaf-wise (splitting the leaf with the largest loss reduction).",
+      read: "Fast and memory-light on many features; leaf-wise growth is accurate but can overfit small data — cap num_leaves / add data to control it.",
+    },
+    ko: {
+      what: "feature를 histogram으로 구간화하고 tree를 leaf-wise(loss 감소가 가장 큰 leaf를 우선 분할)로 키우는 gradient boosting입니다.",
+      read: "feature가 많아도 빠르고 메모리 효율적입니다. leaf-wise는 정확하지만 데이터가 적으면 overfitting될 수 있어 num_leaves를 제한하거나 데이터를 늘려 제어합니다.",
+    },
+  },
+];
+
 export const METHOD_NOTES: MethodNote[] = [
   {
     key: "automl",

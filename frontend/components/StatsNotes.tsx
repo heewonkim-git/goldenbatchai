@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
-import { METHOD_NOTES } from "@/lib/statsNotes";
+import { useEffect, useState } from "react";
+import { METHOD_NOTES, MODEL_NOTES } from "@/lib/statsNotes";
 import { Lang, tr } from "@/lib/i18n";
+
+type Tab = "methods" | "models";
 
 export default function StatsNotes({
   open, onClose, lang,
@@ -11,6 +13,7 @@ export default function StatsNotes({
   onClose: () => void;
   lang: Lang;
 }) {
+  const [tab, setTab] = useState<Tab>("methods");
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -18,6 +21,7 @@ export default function StatsNotes({
   }, [onClose]);
 
   if (!open) return null;
+  const notes = tab === "methods" ? METHOD_NOTES : MODEL_NOTES;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
@@ -37,10 +41,27 @@ export default function StatsNotes({
           </button>
         </div>
 
+        {/* tabs */}
+        <div className="flex gap-1 border-b border-edge px-4 pt-2">
+          {(["methods", "models"] as Tab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`rounded-t-ds px-3 py-1.5 text-[12px] transition-colors ${
+                tab === t
+                  ? "border-b-2 border-brand font-semibold text-brand"
+                  : "text-ink-muted hover:text-ink"
+              }`}
+            >
+              {tr(lang, t === "methods" ? "notes_tab_methods" : "notes_tab_models")}
+            </button>
+          ))}
+        </div>
+
         <div className="overflow-y-auto px-5 py-4">
           <p className="mb-4 text-[11px] text-ink-subtle">{tr(lang, "notes_intro")}</p>
           <div className="flex flex-col gap-4">
-            {METHOD_NOTES.map((n) => {
+            {notes.map((n) => {
               const body = lang === "ko" ? n.ko : n.en;
               return (
                 <section key={n.key} className="rounded-ds border border-edge p-3">
