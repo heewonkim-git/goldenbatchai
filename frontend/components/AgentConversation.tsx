@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import EvidenceCard from "./EvidenceCard";
 import DocViewer, { Citation } from "./DocViewer";
+import { Lang, tr } from "@/lib/i18n";
 
 export interface Message {
   agent: "analysis" | "msat" | "system";
   iteration: number;
   title: string;
+  title_ko?: string;
   body?: string;
   tool?: string;
   evidence?: Record<string, unknown>;
@@ -74,9 +76,11 @@ function InterpretationText({
 export default function AgentConversation({
   messages,
   activity,
+  lang,
 }: {
   messages: Message[];
   activity: string | null;
+  lang: Lang;
 }) {
   const endRef = useRef<HTMLDivElement>(null);
   const [viewer, setViewer] = useState<Citation | null>(null);
@@ -86,9 +90,9 @@ export default function AgentConversation({
 
   return (
     <div className="flex h-full flex-col overflow-y-auto px-5 py-4">
-      <h2 className="eyebrow mb-4">Agent Conversation · live work</h2>
+      <h2 className="eyebrow mb-4">{tr(lang, "conv_title")}</h2>
       {messages.length === 0 && !activity && (
-        <p className="text-xs text-ink-subtle">Run을 눌러 에이전트 반복을 시작하세요.</p>
+        <p className="text-xs text-ink-subtle">{tr(lang, "conv_empty")}</p>
       )}
 
       <div className="flex flex-col">
@@ -128,11 +132,15 @@ export default function AgentConversation({
                   </div>
                 ) : (
                   <>
-                    <InterpretationText text={m.title} citations={cites} onOpen={setViewer} />
+                    <InterpretationText
+                      text={lang === "ko" ? m.title_ko || m.title : m.title}
+                      citations={cites}
+                      onOpen={setViewer}
+                    />
                     {cites.length > 0 && (
                       <div className="mt-2 flex flex-wrap items-center gap-1.5">
                         <span className="font-mono text-[10px] uppercase tracking-wide text-ink-subtle">
-                          Reference:
+                          {tr(lang, "reference")}
                         </span>
                         {cites.map((c, n) => (
                           <button

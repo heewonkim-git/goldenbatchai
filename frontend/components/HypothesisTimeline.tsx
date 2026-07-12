@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Lang, tr } from "@/lib/i18n";
 
 export interface HypoStep {
   iteration: number;
   hypothesis: string;
+  hypothesis_ko?: string;
   confidence: string;
   citations: { doc: string; section?: string; quote?: string }[];
   nextAction?: { type: string; tool?: string; rationale?: string };
@@ -22,10 +24,12 @@ export default function HypothesisTimeline({
   steps,
   running,
   finished,
+  lang,
 }: {
   steps: HypoStep[];
   running: boolean;
   finished: boolean;
+  lang: Lang;
 }) {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -34,11 +38,9 @@ export default function HypothesisTimeline({
 
   return (
     <div className="flex h-full flex-col overflow-y-auto px-5 py-4">
-      <h2 className="eyebrow mb-4">Hypothesis Flow · reviewer view</h2>
+      <h2 className="eyebrow mb-4">{tr(lang, "hypo_title")}</h2>
       {steps.length === 0 && (
-        <p className="text-xs text-ink-subtle">
-          반복이 진행되며 각 iteration의 가설이 어떻게 진화하는지 여기에 쌓입니다.
-        </p>
+        <p className="text-xs text-ink-subtle">{tr(lang, "hypo_empty")}</p>
       )}
 
       <div className="flex flex-col">
@@ -69,23 +71,23 @@ export default function HypothesisTimeline({
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex flex-wrap items-center gap-2">
                   <span className="font-mono text-[10px] uppercase tracking-wide text-ink-subtle">
-                    Iteration {s.iteration}
+                    {tr(lang, "iteration")} {s.iteration}
                   </span>
                   {s.fromTool && (
-                    <span className="font-mono text-[10px] text-ink-subtle">via {s.fromTool}</span>
+                    <span className="font-mono text-[10px] text-ink-subtle">{tr(lang, "via")} {s.fromTool}</span>
                   )}
                   <span
                     className="rounded-full px-2 py-0.5 font-mono text-[10px]"
                     style={{ color: CONF[s.confidence] ?? CONF.medium, background: "var(--ds-surface-2)" }}
                   >
-                    {s.confidence}
+                    {tr(lang, `conf_${s.confidence}`)}
                   </span>
                   {active && (
                     <span
                       className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold"
                       style={{ background: "var(--ds-brand-subtle)", color: "var(--ds-brand)" }}
                     >
-                      ★ Final
+                      {tr(lang, "final")}
                     </span>
                   )}
                 </div>
@@ -94,16 +96,16 @@ export default function HypothesisTimeline({
                   className="font-serif text-[15px] leading-snug text-ink"
                   style={{ textWrap: "balance" } as React.CSSProperties}
                 >
-                  {s.hypothesis}
+                  {lang === "ko" ? s.hypothesis_ko || s.hypothesis : s.hypothesis}
                 </p>
 
                 {s.nextAction && (
                   <div className="mt-1.5 font-mono text-[11px]">
                     {s.nextAction.type === "stop" ? (
-                      <span style={{ color: "var(--ds-brand)" }}>■ stop — recommendation issued</span>
+                      <span style={{ color: "var(--ds-brand)" }}>■ {tr(lang, "stop_reco")}</span>
                     ) : (
                       <span className="text-ink-muted">
-                        → next: <span style={{ color: "var(--ds-brand)" }}>{s.nextAction.tool}</span>
+                        → {tr(lang, "next")}: <span style={{ color: "var(--ds-brand)" }}>{s.nextAction.tool}</span>
                       </span>
                     )}
                   </div>

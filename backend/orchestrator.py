@@ -69,7 +69,9 @@ async def run_iterations(run_id: str, req: RunRequest) -> AsyncIterator[StreamEv
         yield StreamEvent(type="msat.result", data={
             "iteration": iteration,
             "interpretation": msat.interpretation,
+            "interpretation_ko": msat.interpretation_ko,
             "hypothesis": msat.hypothesis,
+            "hypothesis_ko": msat.hypothesis_ko,
             "confidence": msat.confidence,
             "citations": [c.model_dump() for c in msat.citations],
             "next_action": msat.next_action.model_dump(),

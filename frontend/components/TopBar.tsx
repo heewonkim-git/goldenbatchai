@@ -25,6 +25,8 @@ interface Props {
   running: boolean;
   onRun: () => void;
   onOpenSettings: () => void;
+  lang: "en" | "ko";
+  onToggleLang: () => void;
   theme: ThemeMode;
   onCycleTheme: () => void;
 }
@@ -45,7 +47,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 export default function TopBar({
   target, setTarget, targetOptions, framework, setFramework, maxIter, setMaxIter,
   datasetLabel, datasetIsSeed, onUpload, onResetDataset, uploading,
-  running, onRun, onOpenSettings, theme, onCycleTheme,
+  running, onRun, onOpenSettings, lang, onToggleLang, theme, onCycleTheme,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -158,6 +160,15 @@ export default function TopBar({
         title="Agent 세부 설정"
       >
         ⚙
+      </button>
+
+      <button
+        onClick={onToggleLang}
+        className="self-end flex h-9 w-9 items-center justify-center rounded-ds border border-edge-strong bg-surface font-mono text-[11px] font-semibold text-ink-muted hover:border-brand hover:text-brand"
+        aria-label="Toggle language"
+        title={lang === "en" ? "한국어로 전환" : "Switch to English"}
+      >
+        {lang === "en" ? "EN" : "한"}
       </button>
 
       <button

@@ -5,10 +5,12 @@ import TopBar, { TargetOption } from "@/components/TopBar";
 import AgentConversation, { Message } from "@/components/AgentConversation";
 import HypothesisTimeline, { HypoStep } from "@/components/HypothesisTimeline";
 import SettingsModal, { AnalysisConfigT, MsatConfigT } from "@/components/SettingsModal";
+import StatsNotes from "@/components/StatsNotes";
 import {
   fetchHealth, startRun, uploadDataset, StreamEvent,
   fetchAnalysisDefaults, fetchKbDocs, KbDocMeta,
 } from "@/lib/eventStream";
+import { Lang, tr } from "@/lib/i18n";
 
 type ThemeMode = "system" | "light" | "dark";
 const THEME_ORDER: ThemeMode[] = ["system", "light", "dark"];
@@ -42,14 +44,36 @@ function RestoreIcon() {
   );
 }
 
+function NoteIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M4 2h6l2 2v10H4zM10 2v3h3M6 8h4M6 11h4" />
+    </svg>
+  );
+}
+
 function PaneControls({
-  isFull, onExpand, onRestore,
-}: { isFull: boolean; onExpand: () => void; onRestore: () => void }) {
+  isFull, onExpand, onRestore, onNotes, notesTitle,
+}: {
+  isFull: boolean; onExpand: () => void; onRestore: () => void;
+  onNotes?: () => void; notesTitle?: string;
+}) {
   const base =
     "flex h-7 w-7 items-center justify-center rounded-ds border border-edge " +
     "bg-surface/85 backdrop-blur transition-colors";
   return (
     <div className="absolute right-2.5 top-2.5 z-20 flex gap-1">
+      {onNotes && (
+        <button
+          onClick={onNotes}
+          title={notesTitle}
+          aria-label={notesTitle}
+          className={`${base} text-ink-muted hover:border-brand hover:text-brand`}
+        >
+          <NoteIcon />
+        </button>
+      )}
       <button
         onClick={onExpand}
         disabled={isFull}
@@ -86,6 +110,8 @@ export default function Page() {
   const [finished, setFinished] = useState(false);
   const [activity, setActivity] = useState<string | null>(null);
   const [theme, setTheme] = useState<ThemeMode>("system");
+  const [lang, setLang] = useState<Lang>("en");
+  const [notesOpen, setNotesOpen] = useState(false);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [steps, setSteps] = useState<HypoStep[]>([]);
@@ -185,23 +211,24 @@ export default function Page() {
     switch (ev.type) {
       case "run.started":
         push({ agent: "system", iteration: 0, title: `Run started · ${d.target}` });
-        setActivity("Starting…");
+        setActivity(tr(lang, "act_starting"));
         break;
       case "analysis.started":
         lastTool = d.tool;
-        setActivity(`Analysis · ${d.tool}…`);
+        setActivity(tr(lang, "act_analysis", { tool: d.tool }));
         break;
       case "analysis.result":
         push({ agent: "analysis", iteration: d.iteration, title: "", tool: d.tool, evidence: d.evidence });
         break;
       case "msat.started":
-        setActivity("MSAT retrieving docs & interpreting…");
+        setActivity(tr(lang, "act_msat"));
         break;
       case "msat.result":
         push({
           agent: "msat",
           iteration: d.iteration,
           title: d.interpretation,
+          title_ko: d.interpretation_ko,
           body: `Hypothesis: ${d.hypothesis}`,
           citations: d.citations ?? [],
         });
@@ -210,6 +237,7 @@ export default function Page() {
           {
             iteration: d.iteration,
             hypothesis: d.hypothesis,
+            hypothesis_ko: d.hypothesis_ko,
             confidence: d.confidence,
             citations: d.citations ?? [],
             nextAction: d.next_action,
@@ -247,7 +275,7 @@ export default function Page() {
     setSteps([]);
     setFinished(false);
     setRunning(true);
-    setActivity("Starting…");
+    setActivity(tr(lang, "act_starting"));
     try {
       await startRun(
         {
@@ -289,6 +317,8 @@ export default function Page() {
         running={running}
         onRun={onRun}
         onOpenSettings={() => setSettingsOpen(true)}
+        lang={lang}
+        onToggleLang={() => setLang((l) => (l === "en" ? "ko" : "en"))}
         theme={theme}
         onCycleTheme={cycleTheme}
       />
@@ -303,6 +333,8 @@ export default function Page() {
         onKbChange={setKbDocs}
       />
 
+      <StatsNotes open={notesOpen} onClose={() => setNotesOpen(false)} lang={lang} />
+
       <div ref={containerRef} className="flex min-h-0 flex-1">
         {showLeft && (
           <section
@@ -313,8 +345,10 @@ export default function Page() {
               isFull={mode === "left"}
               onExpand={() => setMode("left")}
               onRestore={() => setMode("split")}
+              onNotes={() => setNotesOpen(true)}
+              notesTitle={tr(lang, "notes_btn")}
             />
-            <AgentConversation messages={messages} activity={activity} />
+            <AgentConversation messages={messages} activity={activity} lang={lang} />
           </section>
         )}
 
@@ -342,7 +376,7 @@ export default function Page() {
               onExpand={() => setMode("right")}
               onRestore={() => setMode("split")}
             />
-            <HypothesisTimeline steps={steps} running={running} finished={finished} />
+            <HypothesisTimeline steps={steps} running={running} finished={finished} lang={lang} />
           </section>
         )}
       </div>

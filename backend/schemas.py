@@ -91,12 +91,15 @@ class NextAction(BaseModel):
     tool: Optional[str] = None
     params: dict[str, Any] = Field(default_factory=dict)
     rationale: str = ""
+    rationale_ko: str = ""
 
 
 class MsatResult(BaseModel):
     iteration: int
     interpretation: str
+    interpretation_ko: str = ""
     hypothesis: str
+    hypothesis_ko: str = ""
     confidence: Literal["low", "medium", "high"] = "medium"
     citations: list[Citation] = Field(default_factory=list)
     next_action: NextAction
