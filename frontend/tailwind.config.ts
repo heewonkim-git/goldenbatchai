@@ -18,7 +18,7 @@ const config: Config = {
         ink: "var(--ds-text)",
         "ink-muted": "var(--ds-text-muted)",
         "ink-subtle": "var(--ds-text-subtle)",
-        analysis: "#0d9488", // DS accent-1 (Analysis) — mint
+        analysis: "#0eb5a4", // DS accent-1 (Analysis) — mint
         msat: "#404040", // DS accent-2 (MSAT) — gray
       },
       fontFamily: {

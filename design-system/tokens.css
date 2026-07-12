@@ -2,23 +2,21 @@
  * Shared Design System — Design Tokens (product-agnostic)
  * Source of truth for BOTH "Golden Batch Multi-Agent" and "Deviation Review".
  *
- * Palette v2: a single MINT accent (teal #0d9488) used tonally, on strictly
- * ACHROMATIC (neutral gray) grounds. No other hues except a muted red reserved
- * for genuine error states. Encode meaning with mint-vs-gray + icon/shape.
- *
- * Adopt (any stack): import once, reference var(--ds-*). Never hardcode hex;
- * map product meaning onto the role slots (accent-1 = primary/mint).
+ * Palette v2.1: a single MINT accent on achromatic gray.
+ *   Dark  brand = #C8FCF3 (pastel mint)   Light brand = #0EB5A4 (teal mint)
+ * Same teal-mint family across both themes; everything else neutral gray, with
+ * a muted red reserved for genuine errors.
  * ========================================================================== */
 
 :root {
-  --ds-version: "2.0.0";
+  --ds-version: "2.1.0";
 
-  /* ---- Brand: Mint (the only accent) ---------------------------------- */
-  --ds-brand: #0d9488;          /* teal-600 mint — primary action / identity */
-  --ds-brand-hover: #0f766e;    /* teal-700                                  */
-  --ds-brand-active: #115e59;   /* teal-800                                  */
-  --ds-brand-fg: #ffffff;       /* text/icon on brand                        */
-  --ds-brand-subtle: #ccfbf1;   /* teal-100 tint                             */
+  /* ---- Brand: Mint (light theme values) ------------------------------- */
+  --ds-brand: #0eb5a4;
+  --ds-brand-hover: #0da192;
+  --ds-brand-active: #0b8a7d;
+  --ds-brand-fg: #ffffff;
+  --ds-brand-subtle: #d9faf5;
 
   /* ---- Neutrals / surfaces (achromatic gray) -------------------------- */
   --ds-bg: #fafafa;
@@ -30,14 +28,14 @@
   --ds-text-muted: #525252;
   --ds-text-subtle: #a3a3a3;
 
-  /* ---- Semantic status (mint = good; gray = warning; red = error only) - */
-  --ds-success: #0d9488;   --ds-success-bg: #ccfbf1;
+  /* ---- Semantic (mint = good; gray = warning; red = error only) ------- */
+  --ds-success: #0eb5a4;   --ds-success-bg: #d9faf5;
   --ds-warning: #737373;   --ds-warning-bg: #f5f5f5;
   --ds-danger:  #dc2626;   --ds-danger-bg:  #fef2f2;
-  --ds-info:    #0d9488;   --ds-info-bg:    #ccfbf1;
+  --ds-info:    #0eb5a4;   --ds-info-bg:    #d9faf5;
 
   /* ---- Role accents: accent-1 = mint, others achromatic --------------- */
-  --ds-accent-1: #0d9488;  --ds-accent-1-bg: rgba(13, 148, 136, 0.08);  /* mint  */
+  --ds-accent-1: #0eb5a4;  --ds-accent-1-bg: rgba(14, 181, 164, 0.08);  /* mint  */
   --ds-accent-2: #404040;  --ds-accent-2-bg: rgba(64, 64, 64, 0.06);    /* gray  */
   --ds-accent-3: #14b8a6;  --ds-accent-3-bg: rgba(20, 184, 166, 0.08);  /* mint-light */
   --ds-accent-4: #737373;  --ds-accent-4-bg: rgba(115, 115, 115, 0.06); /* gray  */
@@ -62,63 +60,67 @@
   /* ---- Layout / motion ------------------------------------------------ */
   --ds-appbar-h: 52px;
   --ds-content-max: 1440px;
-  --ds-focus-ring: 0 0 0 2px var(--ds-surface), 0 0 0 4px rgba(13, 148, 136, 0.5);
+  --ds-focus-ring: 0 0 0 2px var(--ds-surface), 0 0 0 4px rgba(14, 181, 164, 0.5);
   --ds-transition: 150ms ease;
 }
 
 /* ---- Dark theme: system preference (default signal) -------------------- */
 @media (prefers-color-scheme: dark) {
   :root {
-    --ds-brand: #2dd4bf; --ds-brand-hover: #5eead4; --ds-brand-active: #99f6e4;
-    --ds-brand-fg: #052e2b; --ds-brand-subtle: rgba(45, 212, 191, 0.15);
+    --ds-brand: #c8fcf3; --ds-brand-hover: #b0f7ea; --ds-brand-active: #98f0df;
+    --ds-brand-fg: #06251f; --ds-brand-subtle: rgba(200, 252, 243, 0.16);
     --ds-bg: #0a0a0a; --ds-surface: #171717; --ds-surface-2: #242424;
     --ds-border: #2a2a2a; --ds-border-strong: #404040;
     --ds-text: #fafafa; --ds-text-muted: #a3a3a3; --ds-text-subtle: #737373;
-    --ds-success: #2dd4bf; --ds-success-bg: rgba(45, 212, 191, 0.15);
+    --ds-success: #c8fcf3; --ds-success-bg: rgba(200, 252, 243, 0.15);
     --ds-warning: #a3a3a3; --ds-warning-bg: rgba(163, 163, 163, 0.12);
     --ds-danger:  #f87171; --ds-danger-bg:  rgba(248, 113, 113, 0.14);
-    --ds-info:    #2dd4bf; --ds-info-bg:    rgba(45, 212, 191, 0.15);
-    --ds-accent-1: #2dd4bf; --ds-accent-1-bg: rgba(45, 212, 191, 0.15);
+    --ds-info:    #c8fcf3; --ds-info-bg:    rgba(200, 252, 243, 0.15);
+    --ds-accent-1: #c8fcf3; --ds-accent-1-bg: rgba(200, 252, 243, 0.15);
     --ds-accent-2: #a3a3a3; --ds-accent-2-bg: rgba(163, 163, 163, 0.12);
-    --ds-accent-3: #5eead4; --ds-accent-3-bg: rgba(94, 234, 212, 0.15);
+    --ds-accent-3: #98f0df; --ds-accent-3-bg: rgba(152, 240, 223, 0.15);
     --ds-accent-4: #737373; --ds-accent-4-bg: rgba(115, 115, 115, 0.12);
     --ds-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
     --ds-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
     --ds-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.7);
-    --ds-focus-ring: 0 0 0 2px var(--ds-surface), 0 0 0 4px rgba(45, 212, 191, 0.6);
+    --ds-focus-ring: 0 0 0 2px var(--ds-surface), 0 0 0 4px rgba(200, 252, 243, 0.6);
   }
 }
 
 /* ---- Dark theme: explicit toggle (wins over system) -------------------- */
 :root[data-theme="dark"] {
-  --ds-brand: #2dd4bf; --ds-brand-hover: #5eead4; --ds-brand-active: #99f6e4;
-  --ds-brand-fg: #052e2b; --ds-brand-subtle: rgba(45, 212, 191, 0.15);
+  --ds-brand: #c8fcf3; --ds-brand-hover: #b0f7ea; --ds-brand-active: #98f0df;
+  --ds-brand-fg: #06251f; --ds-brand-subtle: rgba(200, 252, 243, 0.16);
   --ds-bg: #0a0a0a; --ds-surface: #171717; --ds-surface-2: #242424;
   --ds-border: #2a2a2a; --ds-border-strong: #404040;
   --ds-text: #fafafa; --ds-text-muted: #a3a3a3; --ds-text-subtle: #737373;
-  --ds-success: #2dd4bf; --ds-success-bg: rgba(45, 212, 191, 0.15);
+  --ds-success: #c8fcf3; --ds-success-bg: rgba(200, 252, 243, 0.15);
   --ds-warning: #a3a3a3; --ds-warning-bg: rgba(163, 163, 163, 0.12);
   --ds-danger:  #f87171; --ds-danger-bg:  rgba(248, 113, 113, 0.14);
-  --ds-info:    #2dd4bf; --ds-info-bg:    rgba(45, 212, 191, 0.15);
-  --ds-accent-1: #2dd4bf; --ds-accent-1-bg: rgba(45, 212, 191, 0.15);
+  --ds-info:    #c8fcf3; --ds-info-bg:    rgba(200, 252, 243, 0.15);
+  --ds-accent-1: #c8fcf3; --ds-accent-1-bg: rgba(200, 252, 243, 0.15);
   --ds-accent-2: #a3a3a3; --ds-accent-2-bg: rgba(163, 163, 163, 0.12);
-  --ds-accent-3: #5eead4; --ds-accent-3-bg: rgba(94, 234, 212, 0.15);
+  --ds-accent-3: #98f0df; --ds-accent-3-bg: rgba(152, 240, 223, 0.15);
   --ds-accent-4: #737373; --ds-accent-4-bg: rgba(115, 115, 115, 0.12);
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --ds-brand: #0d9488; --ds-brand-hover: #0f766e; --ds-brand-active: #115e59;
-  --ds-brand-fg: #ffffff; --ds-brand-subtle: #ccfbf1;
+  --ds-brand: #0eb5a4; --ds-brand-hover: #0da192; --ds-brand-active: #0b8a7d;
+  --ds-brand-fg: #ffffff; --ds-brand-subtle: #d9faf5;
   --ds-bg: #fafafa; --ds-surface: #ffffff; --ds-surface-2: #f5f5f5;
   --ds-border: #e5e5e5; --ds-border-strong: #d4d4d4;
   --ds-text: #171717; --ds-text-muted: #525252; --ds-text-subtle: #a3a3a3;
-  --ds-success: #0d9488; --ds-success-bg: #ccfbf1;
+  --ds-success: #0eb5a4; --ds-success-bg: #d9faf5;
   --ds-warning: #737373; --ds-warning-bg: #f5f5f5;
   --ds-danger:  #dc2626; --ds-danger-bg:  #fef2f2;
-  --ds-info:    #0d9488; --ds-info-bg:    #ccfbf1;
-  --ds-accent-1: #0d9488; --ds-accent-1-bg: rgba(13, 148, 136, 0.08);
+  --ds-info:    #0eb5a4; --ds-info-bg:    #d9faf5;
+  --ds-accent-1: #0eb5a4; --ds-accent-1-bg: rgba(14, 181, 164, 0.08);
   --ds-accent-2: #404040; --ds-accent-2-bg: rgba(64, 64, 64, 0.06);
   --ds-accent-3: #14b8a6; --ds-accent-3-bg: rgba(20, 184, 166, 0.08);
   --ds-accent-4: #737373; --ds-accent-4-bg: rgba(115, 115, 115, 0.06);
 }
+
+/* ---- Text selection: fixed pastel-mint highlighter (both themes) ------- */
+::selection { background: #c8fcf3; color: #062a24; }
+::-moz-selection { background: #c8fcf3; color: #062a24; }

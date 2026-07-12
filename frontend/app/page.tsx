@@ -3,15 +3,13 @@
 import { useEffect, useState } from "react";
 import TopBar from "@/components/TopBar";
 import AgentConversation, { Message } from "@/components/AgentConversation";
-import HypothesisPanel, { Hypothesis } from "@/components/HypothesisPanel";
-import IterationTimeline, { TimelineNode } from "@/components/IterationTimeline";
+import HypothesisTimeline, { HypoStep } from "@/components/HypothesisTimeline";
 import { fetchHealth, startRun, StreamEvent } from "@/lib/eventStream";
 
 type ThemeMode = "system" | "light" | "dark";
 const THEME_ORDER: ThemeMode[] = ["system", "light", "dark"];
 
 export default function Page() {
-  const [health, setHealth] = useState<Record<string, unknown> | null>(null);
   const [target, setTarget] = useState("[harvest][Harvest] Product. Yield");
   const [framework, setFramework] = useState("autogluon");
   const [maxIter, setMaxIter] = useState(4);
@@ -21,11 +19,10 @@ export default function Page() {
   const [theme, setTheme] = useState<ThemeMode>("system");
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [hypothesis, setHypothesis] = useState<Hypothesis | null>(null);
-  const [nodes, setNodes] = useState<TimelineNode[]>([]);
+  const [steps, setSteps] = useState<HypoStep[]>([]);
 
   useEffect(() => {
-    fetchHealth().then(setHealth).catch(() => setHealth(null));
+    fetchHealth().catch(() => {}); // warm the backend (HF Space cold start)
   }, []);
 
   function cycleTheme() {
@@ -40,14 +37,8 @@ export default function Page() {
     setMessages((prev) => [...prev, m]);
   }
 
-  function upsertNode(iteration: number, status: TimelineNode["status"]) {
-    setNodes((prev) => {
-      const others = prev.filter((n) => n.iteration !== iteration);
-      return [...others, { iteration, status }].sort(
-        (a, b) => a.iteration - b.iteration,
-      );
-    });
-  }
+  // track the last analysis tool so a hypothesis can name what informed it
+  let lastTool = "";
 
   function handleEvent(ev: StreamEvent) {
     const d = ev.data as Record<string, any>;
@@ -57,14 +48,14 @@ export default function Page() {
         setActivity("Starting…");
         break;
       case "analysis.started":
-        upsertNode(d.iteration, "active");
-        setActivity(`🧮 Analysis · ${d.tool}…`);
+        lastTool = d.tool;
+        setActivity(`Analysis · ${d.tool}…`);
         break;
       case "analysis.result":
         push({ agent: "analysis", iteration: d.iteration, title: "", tool: d.tool, evidence: d.evidence });
         break;
       case "msat.started":
-        setActivity("🧠 MSAT interpreting evidence…");
+        setActivity("MSAT interpreting evidence…");
         break;
       case "msat.result":
         push({
@@ -73,20 +64,26 @@ export default function Page() {
           title: d.interpretation,
           body: `Hypothesis: ${d.hypothesis}`,
         });
-        setHypothesis({
-          iteration: d.iteration,
-          hypothesis: d.hypothesis,
-          confidence: d.confidence,
-          citations: d.citations ?? [],
-          nextAction: d.next_action,
-        });
+        setSteps((prev) => [
+          ...prev,
+          {
+            iteration: d.iteration,
+            hypothesis: d.hypothesis,
+            confidence: d.confidence,
+            citations: d.citations ?? [],
+            nextAction: d.next_action,
+            fromTool: lastTool,
+            final: false,
+          },
+        ]);
         setActivity(null);
         break;
       case "iteration.completed":
-        upsertNode(d.iteration, "done");
         break;
       case "run.finished":
-        push({ agent: "system", iteration: 0, title: `✅ Final: ${d.finalRecommendation}` });
+        setSteps((prev) =>
+          prev.map((s, i) => (i === prev.length - 1 ? { ...s, final: true } : s)),
+        );
         setFinished(true);
         setRunning(false);
         setActivity(null);
@@ -101,25 +98,19 @@ export default function Page() {
 
   async function onRun() {
     setMessages([]);
-    setHypothesis(null);
-    setNodes([]);
+    setSteps([]);
     setFinished(false);
     setRunning(true);
     setActivity("Starting…");
     try {
       await startRun(
-        {
-          dataset: "seed",
-          target,
-          automl_framework: framework,
-          max_iteration: maxIter,
-          time_budget_s: 120,
-        },
+        { dataset: "seed", target, automl_framework: framework, max_iteration: maxIter, time_budget_s: 120 },
         handleEvent,
       );
     } catch (e) {
       push({ agent: "system", iteration: 0, title: `⚠️ ${String(e)}` });
       setRunning(false);
+      setActivity(null);
     }
   }
 
@@ -134,21 +125,18 @@ export default function Page() {
         setMaxIter={setMaxIter}
         running={running}
         onRun={onRun}
-        health={health}
         theme={theme}
         onCycleTheme={cycleTheme}
       />
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-2">
+      <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[1.15fr_1fr]">
         <section className="min-h-0 border-r border-edge bg-surface">
           <AgentConversation messages={messages} activity={activity} />
         </section>
-        <section className="min-h-0 bg-surface">
-          <HypothesisPanel h={hypothesis} />
+        <section className="min-h-0 bg-bg">
+          <HypothesisTimeline steps={steps} running={running} finished={finished} />
         </section>
       </div>
-
-      <IterationTimeline nodes={nodes} finished={finished} />
     </div>
   );
 }
