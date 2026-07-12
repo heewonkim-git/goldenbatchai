@@ -6,7 +6,7 @@ export interface HypoStep {
   iteration: number;
   hypothesis: string;
   confidence: string;
-  citations: { doc: string; section?: string }[];
+  citations: { doc: string; section?: string; quote?: string }[];
   nextAction?: { type: string; tool?: string; rationale?: string };
   fromTool?: string;
   final: boolean;
@@ -98,14 +98,32 @@ export default function HypothesisTimeline({
                 </p>
 
                 {s.citations.length > 0 && (
-                  <ul className="mt-1.5 space-y-0.5">
-                    {s.citations.map((c, j) => (
-                      <li key={j} className="text-[11px] text-ink-muted">
-                        📄 <span className="text-ink">{c.doc}</span>
-                        {c.section && <span className="font-mono text-ink-subtle"> · {c.section}</span>}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="mt-2">
+                    <div className="mb-1 font-mono text-[10px] uppercase tracking-wide text-ink-subtle">
+                      🔍 grounded in {s.citations.length} retrieved passage
+                      {s.citations.length > 1 ? "s" : ""}
+                    </div>
+                    <ul className="space-y-1.5">
+                      {s.citations.map((c, j) => (
+                        <li key={j} className="text-[11px]">
+                          <div className="text-ink-muted">
+                            📄 <span className="text-ink">{c.doc}</span>
+                            {c.section && (
+                              <span className="font-mono text-ink-subtle"> · {c.section}</span>
+                            )}
+                          </div>
+                          {c.quote && (
+                            <blockquote
+                              className="mt-0.5 border-l-2 pl-2 text-[11px] italic leading-snug text-ink-muted"
+                              style={{ borderColor: "var(--ds-accent-1)" }}
+                            >
+                              “{c.quote}”
+                            </blockquote>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
 
                 {s.nextAction && (
