@@ -26,9 +26,14 @@ TOOLS = [
 
 
 def run_tool(tool: str, df: pd.DataFrame, target: str,
-             params: dict[str, Any] | None = None) -> AnalysisEvidence:
-    """Execute one Analysis tool and return quantitative evidence (no interpretation)."""
+             params: dict[str, Any] | None = None, config: Any = None) -> AnalysisEvidence:
+    """Execute one Analysis tool and return quantitative evidence (no interpretation).
+
+    ``config`` is an AnalysisConfig (test split, CV folds, p-value alpha, per-model
+    hyperparameters) whose values are fed into the real ML/stat code.
+    """
     params = params or {}
+    alpha = float(getattr(config, "p_value_alpha", 0.05)) if config is not None else 0.05
 
     # re_analysis just re-dispatches to a concrete tool chosen by MSAT.
     if tool == "re_analysis":
@@ -44,26 +49,27 @@ def run_tool(tool: str, df: pd.DataFrame, target: str,
             evidence = stats.statistical_test(
                 df, target, feature,
                 group_rule=params.get("group_rule", "median_split"),
-                threshold=params.get("threshold"),
+                threshold=params.get("threshold"), alpha=alpha,
             )
         else:
             feats = params.get("features") or dataset.feature_columns(df, target)
-            evidence = stats.correlation_analysis(df, target, feats, method=params.get("method", "spearman"))
+            evidence = stats.correlation_analysis(
+                df, target, feats, method=params.get("method", "spearman"), alpha=alpha)
         return _wrap(tool, target, evidence)
 
     # Model-based tools operate on cleaned (X, y).
     X, y = dataset.prepare_xy(df, target)
     if tool == "automl":
-        evidence = ml.automl(X, y)
+        evidence = ml.automl(X, y, cfg=config)
     elif tool == "remove_multicollinearity":
         evidence = ml.remove_multicollinearity(X, threshold=params.get("threshold", 0.9))
     elif tool == "feature_selection":
-        evidence = ml.feature_selection(X, y, num_selected=params.get("num_selected", 15))
+        evidence = ml.feature_selection(X, y, num_selected=params.get("num_selected", 15), cfg=config)
     elif tool == "shap_analysis":
         evidence = ml.shap_analysis(X, y, model=params.get("model", "xgboost"),
-                                    runs=params.get("runs", 3))
+                                    runs=params.get("runs", 3), cfg=config)
     elif tool == "model_compare":
-        evidence = ml.model_compare(X, y)
+        evidence = ml.model_compare(X, y, cfg=config)
     else:  # pragma: no cover
         raise ValueError(f"unhandled tool: {tool!r}")
 

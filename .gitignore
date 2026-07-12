@@ -39,3 +39,4 @@ backend/artifacts/
 # Screenshots / scratch images
 화면 캡처*.png
 *.screenshot.png
+knowledge_base/_versions.json

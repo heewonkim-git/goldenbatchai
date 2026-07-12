@@ -21,47 +21,98 @@ from sklearn.preprocessing import StandardScaler
 
 warnings.filterwarnings("ignore")
 
-CV = KFold(n_splits=5, shuffle=True, random_state=42)
+# Canonical model list + default hyperparameters. Also served to the Settings UI
+# (GET /api/analysis-defaults) so the form and the real estimators never drift.
+# `max_depth: 0` means "no limit" (mapped to None where the estimator expects it).
+MODEL_DEFAULTS: dict[str, dict[str, Any]] = {
+    "RandomForest": {"n_estimators": 200, "max_depth": 0, "min_samples_split": 2},
+    "GradientBoosting": {"n_estimators": 100, "learning_rate": 0.1, "max_depth": 3},
+    "XGBoost": {"n_estimators": 100, "learning_rate": 0.3, "max_depth": 6, "subsample": 1.0},
+    "LightGBM": {"n_estimators": 100, "learning_rate": 0.1, "num_leaves": 31},
+}
 
 
-def _xgb(**kw):
+def _get(cfg, name: str, default):
+    return getattr(cfg, name, default) if cfg is not None else default
+
+
+def _kfold(cfg) -> KFold:
+    return KFold(n_splits=int(_get(cfg, "cv_folds", 5)), shuffle=True,
+                 random_state=int(_get(cfg, "random_state", 42)))
+
+
+def _xgb(rs: int = 42, **kw):
     from xgboost import XGBRegressor
 
-    return XGBRegressor(random_state=42, n_jobs=-1, verbosity=0, **kw)
+    return XGBRegressor(random_state=rs, n_jobs=-1, verbosity=0, **kw)
 
 
-def _lgb(**kw):
+def _lgb(rs: int = 42, **kw):
     from lightgbm import LGBMRegressor
 
-    return LGBMRegressor(random_state=42, n_jobs=-1, verbose=-1, **kw)
+    return LGBMRegressor(random_state=rs, n_jobs=-1, verbose=-1, **kw)
 
 
-def _models() -> dict[str, Any]:
-    return {
-        "RandomForest": RandomForestRegressor(n_estimators=200, random_state=42, n_jobs=-1),
-        "GradientBoosting": GradientBoostingRegressor(random_state=42),
-        "XGBoost": _xgb(),
-        "LightGBM": _lgb(),
-    }
+def _make(name: str, p: dict[str, Any], rs: int):
+    if name == "RandomForest":
+        md = p.get("max_depth", 0)
+        return RandomForestRegressor(
+            n_estimators=int(p.get("n_estimators", 200)),
+            max_depth=None if not md else int(md),
+            min_samples_split=int(p.get("min_samples_split", 2)),
+            random_state=rs, n_jobs=-1)
+    if name == "GradientBoosting":
+        return GradientBoostingRegressor(
+            n_estimators=int(p.get("n_estimators", 100)),
+            learning_rate=float(p.get("learning_rate", 0.1)),
+            max_depth=int(p.get("max_depth", 3)), random_state=rs)
+    if name == "XGBoost":
+        return _xgb(rs, n_estimators=int(p.get("n_estimators", 100)),
+                    learning_rate=float(p.get("learning_rate", 0.3)),
+                    max_depth=int(p.get("max_depth", 6)),
+                    subsample=float(p.get("subsample", 1.0)))
+    if name == "LightGBM":
+        return _lgb(rs, n_estimators=int(p.get("n_estimators", 100)),
+                    learning_rate=float(p.get("learning_rate", 0.1)),
+                    num_leaves=int(p.get("num_leaves", 31)))
+    raise ValueError(f"unknown model {name!r}")
+
+
+def _models(cfg=None) -> dict[str, Any]:
+    """Build the enabled estimators, merging user params over the defaults."""
+    rs = int(_get(cfg, "random_state", 42))
+    user = _get(cfg, "models", {}) or {}
+    out: dict[str, Any] = {}
+    for name, defaults in MODEL_DEFAULTS.items():
+        mc = user.get(name)
+        enabled = getattr(mc, "enabled", True) if mc is not None else True
+        if not enabled:
+            continue
+        params = {**defaults, **(getattr(mc, "params", {}) or {} if mc is not None else {})}
+        out[name] = _make(name, params, rs)
+    if not out:  # never leave the leaderboard empty
+        out["XGBoost"] = _make("XGBoost", MODEL_DEFAULTS["XGBoost"], rs)
+    return out
 
 
 def _np(X: pd.DataFrame, y: pd.Series):
     return X.values, np.asarray(y, dtype=float), list(X.columns)
 
 
-def _cv_scores(model, Xv, y) -> tuple[float, float, float]:
-    rmse = np.sqrt(-cross_val_score(model, Xv, y, scoring="neg_mean_squared_error", cv=CV))
-    r2 = cross_val_score(model, Xv, y, scoring="r2", cv=CV)
+def _cv_scores(model, Xv, y, cv) -> tuple[float, float, float]:
+    rmse = np.sqrt(-cross_val_score(model, Xv, y, scoring="neg_mean_squared_error", cv=cv))
+    r2 = cross_val_score(model, Xv, y, scoring="r2", cv=cv)
     return float(rmse.mean()), float(rmse.std()), float(r2.mean())
 
 
 # --- automl (sklearn model leaderboard, in lieu of AutoGluon) ----------------
 
-def automl(X: pd.DataFrame, y: pd.Series) -> dict[str, Any]:
+def automl(X: pd.DataFrame, y: pd.Series, cfg=None) -> dict[str, Any]:
     Xv, yv, _ = _np(X, y)
+    cv = _kfold(cfg)
     board = []
-    for name, model in _models().items():
-        rmse_m, rmse_s, r2 = _cv_scores(model, Xv, yv)
+    for name, model in _models(cfg).items():
+        rmse_m, rmse_s, r2 = _cv_scores(model, Xv, yv, cv)
         board.append({"model": name, "rmse": round(rmse_m, 3), "rmse_std": round(rmse_s, 3), "r2": round(r2, 3)})
     board.sort(key=lambda d: d["rmse"])
     best = board[0]
@@ -69,6 +120,7 @@ def automl(X: pd.DataFrame, y: pd.Series) -> dict[str, Any]:
         "framework": "sklearn-leaderboard",
         "n_samples": int(len(yv)),
         "n_features_in": int(X.shape[1]),
+        "cv_folds": cv.get_n_splits(),
         "leaderboard": board,
         "best_model": best["model"],
         "test_metrics": {"rmse": best["rmse"], "r2": best["r2"]},
@@ -92,17 +144,20 @@ def remove_multicollinearity(X: pd.DataFrame, threshold: float = 0.9) -> dict[st
 # --- SHAP --------------------------------------------------------------------
 
 def shap_analysis(X: pd.DataFrame, y: pd.Series, model: str = "xgboost", runs: int = 3,
-                  top_k: int = 12) -> dict[str, Any]:
+                  top_k: int = 12, cfg=None) -> dict[str, Any]:
     import shap
 
     Xv, yv, cols = _np(X, y)
+    runs = int(_get(cfg, "shap_runs", runs))
+    test_size = float(_get(cfg, "test_size", 0.2))
+    rs0 = int(_get(cfg, "random_state", 0))
     make = _xgb if model == "xgboost" else _lgb
     abs_runs = np.zeros((runs, len(cols)))
     dir_accum = np.zeros(len(cols))
     base_vals: list[float] = []
 
     for run in range(runs):
-        Xtr, Xva, ytr, _ = train_test_split(Xv, yv, test_size=0.2, random_state=run)
+        Xtr, Xva, ytr, _ = train_test_split(Xv, yv, test_size=test_size, random_state=rs0 + run)
         est = make()
         est.fit(Xtr, ytr)
         expl = shap.TreeExplainer(est)
@@ -136,13 +191,14 @@ def shap_analysis(X: pd.DataFrame, y: pd.Series, model: str = "xgboost", runs: i
 
 # --- model comparison (RMSE + per-model SHAP top) ----------------------------
 
-def model_compare(X: pd.DataFrame, y: pd.Series, top_k: int = 6) -> dict[str, Any]:
+def model_compare(X: pd.DataFrame, y: pd.Series, top_k: int = 6, cfg=None) -> dict[str, Any]:
     import shap
 
     Xv, yv, cols = _np(X, y)
+    cv = _kfold(cfg)
     out = []
-    for name, model in _models().items():
-        rmse_m, rmse_s, r2 = _cv_scores(model, Xv, yv)
+    for name, model in _models(cfg).items():
+        rmse_m, rmse_s, r2 = _cv_scores(model, Xv, yv, cv)
         top: list[dict] = []
         try:
             model.fit(Xv, yv)
@@ -174,12 +230,16 @@ def _rank_from_scores(scores, cols, num: int) -> list[str]:
     return [cols[j] for j in np.argsort(scores)[::-1][:num]]
 
 
-def feature_selection(X: pd.DataFrame, y: pd.Series, num_selected: int = 15) -> dict[str, Any]:
+def feature_selection(X: pd.DataFrame, y: pd.Series, num_selected: int = 15, cfg=None) -> dict[str, Any]:
     Xv, yv, cols = _np(X, y)
+    num_selected = int(_get(cfg, "num_selected", num_selected))
+    num_selected = min(num_selected, len(cols))
+    rs = int(_get(cfg, "random_state", 42))
+    folds = int(_get(cfg, "cv_folds", 5))
     Xs = StandardScaler().fit_transform(Xv)
 
-    lasso = LassoCV(cv=5, random_state=42, max_iter=5000).fit(Xs, yv)
-    mi = mutual_info_regression(Xs, yv, random_state=42)
+    lasso = LassoCV(cv=folds, random_state=rs, max_iter=5000).fit(Xs, yv)
+    mi = mutual_info_regression(Xs, yv, random_state=rs)
 
     by_method: dict[str, list[str]] = {
         "shap_xgb": _shap_rank(Xv, yv, cols, _xgb, num_selected),

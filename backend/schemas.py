@@ -16,12 +16,37 @@ from pydantic import BaseModel, Field, field_validator
 AutoMLFramework = Literal["autogluon", "h2o"]
 
 
+class ModelConfig(BaseModel):
+    """Per-model enable flag + real hyperparameters passed to the estimator."""
+    enabled: bool = True
+    params: dict[str, Any] = Field(default_factory=dict)
+
+
+class AnalysisConfig(BaseModel):
+    """Tunable knobs for the Analysis Agent's real ML/stat code."""
+    test_size: float = Field(0.2, ge=0.05, le=0.5)
+    cv_folds: int = Field(5, ge=2, le=10)
+    random_state: int = Field(42, ge=0)
+    p_value_alpha: float = Field(0.05, gt=0.0, lt=0.5)
+    num_selected: int = Field(15, ge=3, le=40)
+    shap_runs: int = Field(3, ge=1, le=10)
+    models: dict[str, ModelConfig] = Field(default_factory=dict)
+
+
+class MsatConfig(BaseModel):
+    """MSAT Agent grounding controls."""
+    enabled_docs: Optional[list[str]] = None   # None => all documents
+    retrieval_k: int = Field(5, ge=1, le=12)
+
+
 class RunRequest(BaseModel):
     dataset: str = Field("seed", description='"seed" or an uploaded file id')
     target: str = Field("[harvest][Harvest] Product. Yield")
     automl_framework: AutoMLFramework = "autogluon"
     max_iteration: int = Field(4, ge=1, le=10)
     time_budget_s: int = Field(120, ge=10, le=1800)
+    analysis_config: AnalysisConfig = Field(default_factory=AnalysisConfig)
+    msat_config: MsatConfig = Field(default_factory=MsatConfig)
 
 
 class RunCreated(BaseModel):
@@ -56,6 +81,7 @@ class AnalysisEvidence(BaseModel):
 
 class Citation(BaseModel):
     doc: str
+    doc_id: Optional[str] = None
     section: Optional[str] = None
     quote: Optional[str] = None
 

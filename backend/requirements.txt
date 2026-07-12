@@ -9,6 +9,9 @@ python-multipart==0.0.20
 # --- LLM (MSAT Agent) ---
 anthropic==0.42.0
 
+# --- Knowledge base (Word docs) ---
+python-docx==1.1.2
+
 # --- ML core (Analysis Agent, M2) ---
 # scikit-learn pinned to 1.5.2: 1.6 breaks xgboost/lightgbm sklearn-tags compat.
 pandas==2.2.3

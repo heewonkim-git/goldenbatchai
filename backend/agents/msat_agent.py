@@ -70,24 +70,39 @@ def _query(evidence: AnalysisEvidence, target: str) -> str:
     return " ".join(parts)
 
 
-def retrieve_for(evidence: AnalysisEvidence, k: int = 5):
+def retrieve_for(evidence: AnalysisEvidence, k: int = 5, allowed_ids=None):
     """RAG retrieval step (exposed so the orchestrator can show it in the UI)."""
     target = evidence.target or "yield"
-    return store.search(_query(evidence, target), k=k)
+    return store.search(_query(evidence, target), k=k, allowed_ids=allowed_ids)
+
+
+def _enrich(citations: list[Citation]) -> list[Citation]:
+    """Attach the resolved knowledge-base doc id to each cited title."""
+    for c in citations:
+        if not c.doc_id:
+            c.doc_id = store.resolve_id(c.doc)
+    return citations
 
 
 def interpret(iteration: int, evidence: AnalysisEvidence, max_iteration: int,
-              chunks=None) -> MsatResult:
+              chunks=None, msat_config=None) -> MsatResult:
     target = evidence.target or "yield"
+    k = getattr(msat_config, "retrieval_k", 5) or 5
+    allowed = getattr(msat_config, "enabled_docs", None)
     if not settings.has_api_key:
-        return _stub_interpret(iteration, evidence, max_iteration)
+        res = _stub_interpret(iteration, evidence, max_iteration)
+        res.citations = _enrich(res.citations)
+        return res
     try:
         if chunks is None:
-            chunks = retrieve_for(evidence, k=5)
-        return _claude_interpret(iteration, evidence, max_iteration, target, chunks)
+            chunks = retrieve_for(evidence, k=k, allowed_ids=allowed)
+        res = _claude_interpret(iteration, evidence, max_iteration, target, chunks)
+        res.citations = _enrich(res.citations)
+        return res
     except Exception as exc:  # never break the run on an LLM/parse error
         res = _stub_interpret(iteration, evidence, max_iteration)
         res.interpretation = f"[LLM error, stub fallback: {exc}] " + res.interpretation
+        res.citations = _enrich(res.citations)
         return res
 
 

@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import TopBar, { TargetOption } from "@/components/TopBar";
 import AgentConversation, { Message } from "@/components/AgentConversation";
 import HypothesisTimeline, { HypoStep } from "@/components/HypothesisTimeline";
-import { fetchHealth, startRun, uploadDataset, StreamEvent } from "@/lib/eventStream";
+import SettingsModal, { AnalysisConfigT, MsatConfigT } from "@/components/SettingsModal";
+import {
+  fetchHealth, startRun, uploadDataset, StreamEvent,
+  fetchAnalysisDefaults, fetchKbDocs, KbDocMeta,
+} from "@/lib/eventStream";
 
 type ThemeMode = "system" | "light" | "dark";
 const THEME_ORDER: ThemeMode[] = ["system", "light", "dark"];
@@ -86,6 +90,12 @@ export default function Page() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [steps, setSteps] = useState<HypoStep[]>([]);
 
+  // agent settings
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [analysisConfig, setAnalysisConfig] = useState<AnalysisConfigT | null>(null);
+  const [msatConfig, setMsatConfig] = useState<MsatConfigT>({ enabled_docs: null, retrieval_k: 5 });
+  const [kbDocs, setKbDocs] = useState<KbDocMeta[]>([]);
+
   // resizable / fullscreen panes
   const [leftPct, setLeftPct] = useState(54);
   const [mode, setMode] = useState<PaneMode>("split");
@@ -93,6 +103,21 @@ export default function Page() {
 
   useEffect(() => {
     fetchHealth().catch(() => {}); // warm the backend (HF Space cold start)
+    // load analysis defaults → seed the settings form; load KB doc list
+    fetchAnalysisDefaults()
+      .then((d) => {
+        const models: AnalysisConfigT["models"] = {};
+        for (const [name, params] of Object.entries(d.models)) {
+          models[name] = { enabled: true, params: { ...params } };
+        }
+        setAnalysisConfig({
+          test_size: d.test_size, cv_folds: d.cv_folds, random_state: d.random_state,
+          p_value_alpha: d.p_value_alpha, num_selected: d.num_selected, shap_runs: d.shap_runs,
+          models,
+        });
+      })
+      .catch(() => {});
+    fetchKbDocs().then(setKbDocs).catch(() => {});
   }, []);
 
   function cycleTheme() {
@@ -225,7 +250,11 @@ export default function Page() {
     setActivity("Starting…");
     try {
       await startRun(
-        { dataset, target, automl_framework: framework, max_iteration: maxIter, time_budget_s: 120 },
+        {
+          dataset, target, automl_framework: framework, max_iteration: maxIter, time_budget_s: 120,
+          ...(analysisConfig ? { analysis_config: analysisConfig } : {}),
+          msat_config: msatConfig,
+        },
         handleEvent,
       );
     } catch (e) {
@@ -259,8 +288,19 @@ export default function Page() {
         uploading={uploading}
         running={running}
         onRun={onRun}
+        onOpenSettings={() => setSettingsOpen(true)}
         theme={theme}
         onCycleTheme={cycleTheme}
+      />
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        analysis={analysisConfig}
+        msat={msatConfig}
+        kbDocs={kbDocs}
+        onSave={(a, m) => { setAnalysisConfig(a); setMsatConfig(m); }}
+        onKbChange={setKbDocs}
       />
 
       <div ref={containerRef} className="flex min-h-0 flex-1">

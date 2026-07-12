@@ -9,7 +9,8 @@ from scipy import stats
 
 
 def statistical_test(df: pd.DataFrame, target: str, feature: str,
-                     group_rule: str = "median_split", threshold: float | None = None) -> dict[str, Any]:
+                     group_rule: str = "median_split", threshold: float | None = None,
+                     alpha: float = 0.05) -> dict[str, Any]:
     """Welch t-test comparing target across a two-way split of `feature`.
 
     group_rule: "median_split" (default) or "threshold" (uses `threshold`, high = feature > threshold).
@@ -35,6 +36,8 @@ def statistical_test(df: pd.DataFrame, target: str, feature: str,
         "group_rule": rule_desc,
         "statistic": round(float(t), 4),
         "p_value": round(float(p), 5),
+        "alpha": alpha,
+        "significant": bool(float(p) < alpha),
         "groups": {
             "high": {"n": int(len(hi)), "mean": round(float(hi.mean()), 3), "std": round(float(hi.std()), 3)},
             "low": {"n": int(len(lo)), "mean": round(float(lo.mean()), 3), "std": round(float(lo.std()), 3)},
@@ -43,7 +46,7 @@ def statistical_test(df: pd.DataFrame, target: str, feature: str,
 
 
 def correlation_analysis(df: pd.DataFrame, target: str, features: list[str],
-                         method: str = "spearman") -> dict[str, Any]:
+                         method: str = "spearman", alpha: float = 0.05) -> dict[str, Any]:
     """Correlation of each feature with the target (+ p-value), ranked by |rho|."""
     d = df[[*features, target]].apply(pd.to_numeric, errors="coerce").dropna()
     fn = stats.spearmanr if method == "spearman" else stats.pearsonr
@@ -57,7 +60,8 @@ def correlation_analysis(df: pd.DataFrame, target: str, features: list[str],
     return {
         "target": target,
         "method": method,
+        "alpha": alpha,
         "n_samples": int(len(d)),
         "correlations": rows,
-        "significant": [x for x in rows if x["p_value"] < 0.05],
+        "significant": [x for x in rows if x["p_value"] < alpha],
     }

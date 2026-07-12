@@ -9,15 +9,17 @@ import json
 import uuid
 from typing import AsyncIterator
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from config import settings
 from orchestrator import run_iterations
+from rag.store import store
 from schemas import RunCreated, RunRequest
 from tools import dataset as dataset_tool
+from tools import ml as ml_tool
 
 app = FastAPI(title="Golden Batch Multi-Agent", version="0.1.0")
 
@@ -80,6 +82,50 @@ def upload_dataset(body: DatasetUpload) -> dict:
         "n_rows": int(len(df)),
         "targetCandidates": dataset_tool.target_candidates(df),
     }
+
+
+# --- Analysis Agent settings ------------------------------------------------
+
+@app.get("/api/analysis-defaults")
+def analysis_defaults() -> dict:
+    """Default knobs + per-model hyperparameters that drive the Settings form."""
+    return {
+        "test_size": 0.2,
+        "cv_folds": 5,
+        "random_state": 42,
+        "p_value_alpha": 0.05,
+        "num_selected": 15,
+        "shap_runs": 3,
+        "models": ml_tool.MODEL_DEFAULTS,
+    }
+
+
+# --- MSAT Agent settings: knowledge base (Word docs) ------------------------
+
+@app.get("/api/kb")
+def kb_list() -> dict:
+    return {"documents": store.list_docs()}
+
+
+@app.get("/api/kb/{doc_id}")
+def kb_doc(doc_id: str) -> dict:
+    doc = store.get_doc(doc_id)
+    if doc is None:
+        raise HTTPException(status_code=404, detail=f"document not found: {doc_id}")
+    return doc
+
+
+@app.post("/api/kb/upload")
+async def kb_upload(file: UploadFile = File(...), doc_id: str = Form("")) -> dict:
+    """Upload a .docx as a new version of `doc_id` (or a brand-new document)."""
+    if not (file.filename or "").lower().endswith(".docx"):
+        raise HTTPException(status_code=400, detail="only .docx files are accepted")
+    data = await file.read()
+    try:
+        result = store.add_version(doc_id or "", file.filename or "document.docx", data)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"could not read .docx: {exc}")
+    return {**result, "documents": store.list_docs()}
 
 
 @app.post("/api/runs", response_model=RunCreated)

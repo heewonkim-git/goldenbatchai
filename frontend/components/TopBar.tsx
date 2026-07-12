@@ -24,6 +24,7 @@ interface Props {
   uploading: boolean;
   running: boolean;
   onRun: () => void;
+  onOpenSettings: () => void;
   theme: ThemeMode;
   onCycleTheme: () => void;
 }
@@ -44,7 +45,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 export default function TopBar({
   target, setTarget, targetOptions, framework, setFramework, maxIter, setMaxIter,
   datasetLabel, datasetIsSeed, onUpload, onResetDataset, uploading,
-  running, onRun, theme, onCycleTheme,
+  running, onRun, onOpenSettings, theme, onCycleTheme,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -150,8 +151,18 @@ export default function TopBar({
       </button>
 
       <button
+        onClick={onOpenSettings}
+        disabled={running}
+        className="ml-auto self-end flex h-9 w-9 items-center justify-center rounded-ds border border-edge-strong bg-surface text-base text-ink-muted hover:border-brand hover:text-brand disabled:opacity-50"
+        aria-label="Agent settings"
+        title="Agent 세부 설정"
+      >
+        ⚙
+      </button>
+
+      <button
         onClick={onCycleTheme}
-        className="ml-auto self-end flex items-center gap-1.5 rounded-full border border-edge-strong bg-surface px-3 py-1.5 font-mono text-[11px] text-ink-muted hover:border-brand hover:text-brand"
+        className="self-end flex items-center gap-1.5 rounded-full border border-edge-strong bg-surface px-3 py-1.5 font-mono text-[11px] text-ink-muted hover:border-brand hover:text-brand"
         aria-label="Toggle color theme"
       >
         <span>{THEME_ICON[theme]}</span>

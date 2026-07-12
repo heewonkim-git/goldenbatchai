@@ -39,6 +39,8 @@ export interface RunConfig {
   automl_framework: string;
   max_iteration: number;
   time_budget_s: number;
+  analysis_config?: unknown;
+  msat_config?: unknown;
 }
 
 /** POST a run, then open an EventSource and forward each named event. */
@@ -142,5 +144,50 @@ export async function uploadDataset(csv: string, filename: string): Promise<Uplo
 
 export async function fetchHealth(): Promise<Record<string, unknown>> {
   const res = await fetch(`${API_BASE}/api/health`);
+  return res.json();
+}
+
+// --- settings: analysis defaults + knowledge base ---------------------------
+
+export interface AnalysisDefaults {
+  test_size: number;
+  cv_folds: number;
+  random_state: number;
+  p_value_alpha: number;
+  num_selected: number;
+  shap_runs: number;
+  models: Record<string, Record<string, number>>;
+}
+
+export interface KbDocMeta {
+  id: string;
+  title: string;
+  version: number;
+  sections: number;
+}
+
+export async function fetchAnalysisDefaults(): Promise<AnalysisDefaults> {
+  return (await fetch(`${API_BASE}/api/analysis-defaults`)).json();
+}
+
+export async function fetchKbDocs(): Promise<KbDocMeta[]> {
+  const r = await (await fetch(`${API_BASE}/api/kb`)).json();
+  return r.documents as KbDocMeta[];
+}
+
+export async function uploadKbDoc(file: File, docId: string): Promise<{ id: string; version: number; documents: KbDocMeta[] }> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("doc_id", docId);
+  const res = await fetch(`${API_BASE}/api/kb/upload`, { method: "POST", body: fd });
+  if (!res.ok) {
+    let detail = `${res.status}`;
+    try {
+      detail = ((await res.json()) as { detail?: string }).detail ?? detail;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail);
+  }
   return res.json();
 }
