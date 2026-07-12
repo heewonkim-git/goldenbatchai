@@ -130,14 +130,29 @@ def automl(X: pd.DataFrame, y: pd.Series, cfg=None) -> dict[str, Any]:
 # --- collinearity ------------------------------------------------------------
 
 def remove_multicollinearity(X: pd.DataFrame, threshold: float = 0.9) -> dict[str, Any]:
-    corr = X.corr(method="spearman").abs()
-    upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
+    corr = X.corr(method="spearman")
+    abs_corr = corr.abs()
+    upper = abs_corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
     to_drop = [c for c in upper.columns if (upper[c] > threshold).any()]
+
+    # compact signed-correlation matrix over the most collinear features (for a heatmap)
+    off = abs_corr.copy()
+    np.fill_diagonal(off.values, 0.0)
+    ranked = off.max(axis=1).sort_values(ascending=False)
+    sel = list(ranked.index[:12])
+    sub = corr.loc[sel, sel]
+    matrix = {
+        "features": sel,
+        "values": [[round(float(sub.iat[i, j]), 3) for j in range(len(sel))] for i in range(len(sel))],
+        "dropped": [f for f in sel if f in to_drop],
+    }
+
     return {
         "threshold": threshold,
         "dropped": to_drop,
         "n_dropped": len(to_drop),
         "n_remaining": int(X.shape[1] - len(to_drop)),
+        "matrix": matrix,
     }
 
 

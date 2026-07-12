@@ -16,8 +16,12 @@ from agents import analysis_agent, msat_agent
 from schemas import RunRequest, StreamEvent
 from tools import dataset
 
-# Iteration 1 runs a small battery so the opening shows the full pipeline.
-OPENING_TOOLS = ["automl", "feature_selection", "shap_analysis"]
+# Iteration 1 runs a small battery so the opening shows the full pipeline
+# (and the full range of charts: leaderboard, heatmap, ensemble bars, scatter, SHAP).
+OPENING_TOOLS = [
+    "automl", "remove_multicollinearity", "feature_selection",
+    "correlation_analysis", "shap_analysis",
+]
 
 
 async def run_iterations(run_id: str, req: RunRequest) -> AsyncIterator[StreamEvent]:

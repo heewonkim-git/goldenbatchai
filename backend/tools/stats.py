@@ -57,6 +57,21 @@ def correlation_analysis(df: pd.DataFrame, target: str, features: list[str],
         r, p = fn(d[f], d[target])
         rows.append({"feature": f, "r": round(float(r), 4), "p_value": round(float(p), 5)})
     rows.sort(key=lambda x: abs(x["r"]), reverse=True)
+
+    # scatter sample for the strongest-correlated feature (feature vs target)
+    scatter = None
+    if rows:
+        f = rows[0]["feature"]
+        pts = [[round(float(x), 4), round(float(yv), 4)]
+               for x, yv in zip(d[f].tolist(), d[target].tolist())]
+        scatter = {
+            "feature": f,
+            "target": target,
+            "r": rows[0]["r"],
+            "r2": round(float(rows[0]["r"]) ** 2, 4),
+            "points": pts[:200],
+        }
+
     return {
         "target": target,
         "method": method,
@@ -64,4 +79,5 @@ def correlation_analysis(df: pd.DataFrame, target: str, features: list[str],
         "n_samples": int(len(d)),
         "correlations": rows,
         "significant": [x for x in rows if x["p_value"] < alpha],
+        "scatter": scatter,
     }

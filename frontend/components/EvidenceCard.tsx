@@ -1,10 +1,17 @@
 "use client";
 
+import React from "react";
+
 // Renders Analysis Agent evidence as compact charts (SHAP bars, group tests,
-// leaderboards) instead of raw JSON. One switch per tool. Quantitative only —
-// interpretation is the MSAT Agent's job.
+// leaderboards, scatter, correlation heatmap) instead of raw JSON. One switch
+// per tool. Quantitative only — interpretation is the MSAT Agent's job.
 
 type Ev = Record<string, any>;
+
+function tiny(f: string) {
+  const s = f.replace(/\[[^\]]*\]/g, " ").replace(/_/g, " ").replace(/\s+/g, " ").trim();
+  return s.length > 20 ? s.slice(0, 20) + "…" : s || f;
+}
 
 // Single mint accent; direction/sign encoded by mint (emphasis) vs gray (muted).
 const A1 = "var(--ds-accent-1)";        // mint
@@ -186,6 +193,77 @@ function StatTestView({ ev }: { ev: Ev }) {
   );
 }
 
+function Scatter({ sc }: { sc: Ev }) {
+  const pts: number[][] = sc?.points ?? [];
+  if (pts.length < 3) return null;
+  const W = 320, H = 180, padL = 30, padB = 22, padT = 16, padR = 10;
+  const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+  const xmin = Math.min(...xs), xmax = Math.max(...xs);
+  const ymin = Math.min(...ys), ymax = Math.max(...ys);
+  const sx = (x: number) => padL + (xmax === xmin ? 0.5 : (x - xmin) / (xmax - xmin)) * (W - padL - padR);
+  const sy = (y: number) => H - padB - (ymax === ymin ? 0.5 : (y - ymin) / (ymax - ymin)) * (H - padB - padT);
+  const n = pts.length;
+  const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0;
+  for (const [x, y] of pts) { num += (x - mx) * (y - my); den += (x - mx) ** 2; }
+  const slope = den ? num / den : 0, inter = my - slope * mx;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="mb-2 w-full" style={{ maxWidth: 380 }}>
+      <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="var(--ds-border)" />
+      <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="var(--ds-border)" />
+      <line x1={sx(xmin)} y1={sy(slope * xmin + inter)} x2={sx(xmax)} y2={sy(slope * xmax + inter)}
+        stroke="var(--ds-brand)" strokeWidth="1.5" strokeDasharray="4 3" />
+      {pts.map((p, i) => (
+        <circle key={i} cx={sx(p[0])} cy={sy(p[1])} r={2.4} fill="var(--ds-accent-1)" fillOpacity={0.6} />
+      ))}
+      <text x={(padL + W) / 2} y={H - 4} textAnchor="middle" fontSize="8"
+        fill="var(--ds-text-subtle)" fontFamily="monospace">{tiny(sc.feature)}</text>
+      <text x={8} y={padT - 5} fontSize="8" fill="var(--ds-text-subtle)" fontFamily="monospace">{tiny(sc.target)}</text>
+      <text x={W - padR} y={padT} textAnchor="end" fontSize="9.5" fill="var(--ds-brand)"
+        fontFamily="monospace">r={sc.r >= 0 ? "+" : ""}{sc.r} · R²={sc.r2}</text>
+    </svg>
+  );
+}
+
+function heatColor(v: number) {
+  const a = Math.min(1, Math.abs(v));
+  const base = v >= 0 ? "var(--ds-brand)" : "var(--ds-text-subtle)";
+  return `color-mix(in srgb, ${base} ${Math.round(a * 100)}%, var(--ds-surface-2))`;
+}
+
+function Heatmap({ m }: { m: Ev }) {
+  const feats: string[] = m?.features ?? [];
+  const vals: number[][] = m?.values ?? [];
+  const dropped = new Set<string>(m?.dropped ?? []);
+  if (feats.length < 2) return null;
+  const cell = 16;
+  return (
+    <div className="mb-2 overflow-x-auto">
+      <div style={{ display: "grid", gridTemplateColumns: `minmax(84px,120px) repeat(${feats.length}, ${cell}px)`, gap: 1 }}>
+        <div />
+        {feats.map((_, j) => (
+          <div key={j} className="text-center font-mono text-[8px] text-ink-subtle" style={{ lineHeight: `${cell}px` }}>
+            {j + 1}
+          </div>
+        ))}
+        {feats.map((f, i) => (
+          <React.Fragment key={i}>
+            <div className="truncate pr-1 text-right font-mono text-[9px]"
+              style={{ lineHeight: `${cell}px`, color: dropped.has(f) ? "var(--ds-danger)" : "var(--ds-text-muted)" }}
+              title={f}>
+              <span className="text-ink-subtle">{i + 1}.</span> {tiny(f)}
+            </div>
+            {(vals[i] ?? []).map((v, j) => (
+              <div key={j} title={`${tiny(f)} × ${tiny(feats[j])} = ${v}`}
+                style={{ width: cell, height: cell, background: heatColor(v) }} />
+            ))}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function CorrelationView({ ev }: { ev: Ev }) {
   const rows = (ev.correlations ?? []).slice(0, 8);
   const max = Math.max(...rows.map((r: Ev) => Math.abs(r.r)), 1e-9);
@@ -194,6 +272,7 @@ function CorrelationView({ ev }: { ev: Ev }) {
       <Caption>
         {ev.method} correlation with target · {ev.n_samples} batches
       </Caption>
+      {ev.scatter && <Scatter sc={ev.scatter} />}
       <div className="flex flex-col gap-1.5">
         {rows.map((r: Ev, i: number) => {
           const sig = r.p_value != null && r.p_value < 0.05;
@@ -220,6 +299,7 @@ function CollinearityView({ ev }: { ev: Ev }) {
       <Caption>
         Spearman |ρ| &gt; {ev.threshold} · dropped {ev.n_dropped} · kept {ev.n_remaining}
       </Caption>
+      {ev.matrix && <Heatmap m={ev.matrix} />}
       <div className="flex flex-wrap gap-1">
         {dropped.length === 0 && (
           <span className="text-[11px] text-ink-subtle">no redundant features</span>
