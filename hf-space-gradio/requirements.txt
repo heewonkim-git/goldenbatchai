@@ -1,7 +1,6 @@
-# HF Gradio Space deps. gradio brings fastapi/uvicorn/pydantic/starlette;
-# we add the backend's own libraries. (Kept unpinned for fastapi/pydantic so
-# gradio can resolve compatible versions.)
-gradio==4.44.1
+# HF Gradio Space deps. NOTE: gradio is PRE-INSTALLED by the SDK (version set by
+# sdk_version in README.md), so it is NOT listed here. We add the backend libs.
+# fastapi/uvicorn/pydantic/starlette come in via gradio's own dependencies.
 
 # --- backend web extras ---
 sse-starlette==2.1.3
