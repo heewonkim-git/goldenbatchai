@@ -64,10 +64,38 @@ export async function startRun(
         /* ignore malformed */
       }
       onEvent({ type, data });
-      if (type === "run.finished" || type === "error") es.close();
+      // per-tool errors are non-fatal (fatal:false) — keep the stream open
+      if (type === "run.finished" || (type === "error" && data.fatal === true)) es.close();
     });
   }
   return es;
+}
+
+export interface UploadResult {
+  datasetId: string;
+  filename: string;
+  columns: string[];
+  n_rows: number;
+  targetCandidates: string[];
+}
+
+/** Upload raw CSV text; returns the dataset id + column metadata. */
+export async function uploadDataset(csv: string, filename: string): Promise<UploadResult> {
+  const res = await fetch(`${API_BASE}/api/datasets`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ csv, filename }),
+  });
+  if (!res.ok) {
+    let detail = `${res.status}`;
+    try {
+      detail = ((await res.json()) as { detail?: string }).detail ?? detail;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail);
+  }
+  return (await res.json()) as UploadResult;
 }
 
 export async function fetchHealth(): Promise<Record<string, unknown>> {

@@ -22,9 +22,10 @@ OPENING_TOOLS = ["automl", "feature_selection", "shap_analysis"]
 
 async def run_iterations(run_id: str, req: RunRequest) -> AsyncIterator[StreamEvent]:
     df = dataset.load_dataset(req.dataset)
+    target = dataset.resolve_target(df, req.target)
 
     yield StreamEvent(type="run.started", data={
-        "runId": run_id, "target": req.target, "automl_framework": req.automl_framework,
+        "runId": run_id, "target": target, "automl_framework": req.automl_framework,
         "maxIter": req.max_iteration, "dataset": req.dataset, "n_rows": int(len(df)),
     })
 
@@ -41,11 +42,12 @@ async def run_iterations(run_id: str, req: RunRequest) -> AsyncIterator[StreamEv
             yield StreamEvent(type="analysis.started", data={"iteration": iteration, "tool": tool})
             try:
                 evidence = await asyncio.to_thread(
-                    analysis_agent.run_tool, tool, df, req.target,
+                    analysis_agent.run_tool, tool, df, target,
                     next_params if tool == next_tool else {},
                 )
             except Exception as exc:  # isolate a tool failure; keep the run alive
-                yield StreamEvent(type="error", data={"stage": f"analysis:{tool}", "message": str(exc)})
+                yield StreamEvent(type="error", data={
+                    "stage": f"analysis:{tool}", "message": str(exc), "fatal": False})
                 continue
             last_evidence = evidence
             yield StreamEvent(type="analysis.result", data={
@@ -53,7 +55,8 @@ async def run_iterations(run_id: str, req: RunRequest) -> AsyncIterator[StreamEv
             })
 
         if last_evidence is None:  # every tool failed this iteration
-            yield StreamEvent(type="error", data={"stage": "analysis", "message": "no evidence produced"})
+            yield StreamEvent(type="error", data={
+                "stage": "analysis", "message": "no evidence produced", "fatal": True})
             break
 
         # --- MSAT interpretation (retrieves KB internally) ---

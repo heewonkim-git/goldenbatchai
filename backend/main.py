@@ -11,11 +11,13 @@ from typing import AsyncIterator
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from config import settings
 from orchestrator import run_iterations
 from schemas import RunCreated, RunRequest
+from tools import dataset as dataset_tool
 
 app = FastAPI(title="Golden Batch Multi-Agent", version="0.1.0")
 
@@ -52,6 +54,34 @@ def health() -> dict:
     }
 
 
+class DatasetUpload(BaseModel):
+    csv: str
+    filename: str | None = None
+
+
+@app.get("/api/sample-dataset")
+def sample_dataset() -> dict:
+    """Return the bundled lecture demo CSV so the UI can offer it for download."""
+    text = dataset_tool.SEED_CSV.read_text(encoding="utf-8")
+    return {"filename": "golden_batch_demo.csv", "csv": text}
+
+
+@app.post("/api/datasets")
+def upload_dataset(body: DatasetUpload) -> dict:
+    """Register a pasted/uploaded CSV and report its columns + target candidates."""
+    try:
+        ds_id, df = dataset_tool.register_upload(body.csv, body.filename)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"could not parse CSV: {exc}")
+    return {
+        "datasetId": ds_id,
+        "filename": body.filename or "uploaded.csv",
+        "columns": list(map(str, df.columns)),
+        "n_rows": int(len(df)),
+        "targetCandidates": dataset_tool.target_candidates(df),
+    }
+
+
 @app.post("/api/runs", response_model=RunCreated)
 def create_run(req: RunRequest) -> RunCreated:
     run_id = uuid.uuid4().hex[:12]
@@ -70,6 +100,7 @@ async def run_events(run_id: str) -> EventSourceResponse:
             async for ev in run_iterations(run_id, req):
                 yield {"event": ev.type, "data": json.dumps(ev.data, ensure_ascii=False)}
         except Exception as exc:  # surface errors to the UI instead of dropping the stream
-            yield {"event": "error", "data": json.dumps({"stage": "orchestrator", "message": str(exc)})}
+            yield {"event": "error", "data": json.dumps(
+                {"stage": "orchestrator", "message": str(exc), "fatal": True})}
 
     return EventSourceResponse(event_generator())
