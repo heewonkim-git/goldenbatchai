@@ -56,7 +56,7 @@ async def run_iterations(run_id: str, req: RunRequest) -> AsyncIterator[StreamEv
             yield StreamEvent(type="error", data={"stage": "analysis", "message": "no evidence produced"})
             break
 
-        # --- MSAT interpretation ---
+        # --- MSAT interpretation (retrieves KB internally) ---
         yield StreamEvent(type="msat.started", data={"iteration": iteration})
         msat = await asyncio.to_thread(
             msat_agent.interpret, iteration, last_evidence, req.max_iteration

@@ -70,12 +70,21 @@ def _query(evidence: AnalysisEvidence, target: str) -> str:
     return " ".join(parts)
 
 
-def interpret(iteration: int, evidence: AnalysisEvidence, max_iteration: int) -> MsatResult:
+def retrieve_for(evidence: AnalysisEvidence, k: int = 5):
+    """RAG retrieval step (exposed so the orchestrator can show it in the UI)."""
+    target = evidence.target or "yield"
+    return store.search(_query(evidence, target), k=k)
+
+
+def interpret(iteration: int, evidence: AnalysisEvidence, max_iteration: int,
+              chunks=None) -> MsatResult:
     target = evidence.target or "yield"
     if not settings.has_api_key:
         return _stub_interpret(iteration, evidence, max_iteration)
     try:
-        return _claude_interpret(iteration, evidence, max_iteration, target)
+        if chunks is None:
+            chunks = retrieve_for(evidence, k=5)
+        return _claude_interpret(iteration, evidence, max_iteration, target, chunks)
     except Exception as exc:  # never break the run on an LLM/parse error
         res = _stub_interpret(iteration, evidence, max_iteration)
         res.interpretation = f"[LLM error, stub fallback: {exc}] " + res.interpretation
@@ -83,10 +92,9 @@ def interpret(iteration: int, evidence: AnalysisEvidence, max_iteration: int) ->
 
 
 def _claude_interpret(iteration: int, evidence: AnalysisEvidence, max_iteration: int,
-                      target: str) -> MsatResult:
+                      target: str, chunks) -> MsatResult:
     import anthropic
 
-    chunks = store.search(_query(evidence, target), k=5)
     kb = "\n\n".join(f"[{c.doc} :: {c.section}]\n{c.text[:900]}" for c in chunks) or "(none)"
     forced_stop = iteration >= max_iteration
 
@@ -103,7 +111,11 @@ def _claude_interpret(iteration: int, evidence: AnalysisEvidence, max_iteration:
 
 {"This is the final iteration — set next_action.type to 'stop' and give the Golden Batch recommendation."
    if forced_stop else "Decide whether to stop (enough evidence) or request one more analysis."}
-Return the structured object. Put each cited passage's doc and section in citations."""
+In the "interpretation" text, insert bracketed citation markers [1], [2], ... right after each
+claim that a document supports, numbered to match the ORDER of the citations array (citations[0]
+is [1], citations[1] is [2], ...). Every citation you list must be referenced at least once in the
+text, and every marker must have a matching citations entry. Put each cited passage's doc, section,
+and the exact quoted sentence in citations."""
 
     user += (
         "\n\nRespond with ONLY a JSON object (no prose, no markdown fences) of shape:\n"
@@ -116,7 +128,7 @@ Return the structured object. Put each cited passage's doc and section in citati
     client = anthropic.Anthropic(api_key=settings.anthropic_api_key, timeout=90.0, max_retries=2)
     resp = client.messages.create(
         model=settings.msat_model,
-        max_tokens=1500,
+        max_tokens=3000,
         system=SYSTEM,
         messages=[{"role": "user", "content": user}],
     )

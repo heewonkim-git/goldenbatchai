@@ -55,7 +55,7 @@ export default function Page() {
         push({ agent: "analysis", iteration: d.iteration, title: "", tool: d.tool, evidence: d.evidence });
         break;
       case "msat.started":
-        setActivity("MSAT interpreting evidence…");
+        setActivity("MSAT retrieving docs & interpreting…");
         break;
       case "msat.result":
         push({
@@ -63,6 +63,7 @@ export default function Page() {
           iteration: d.iteration,
           title: d.interpretation,
           body: `Hypothesis: ${d.hypothesis}`,
+          citations: d.citations ?? [],
         });
         setSteps((prev) => [
           ...prev,

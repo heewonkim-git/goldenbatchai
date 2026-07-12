@@ -83,6 +83,7 @@ EventType = Literal[
     "analysis.started",
     "analysis.result",
     "msat.started",
+    "msat.retrieval",
     "msat.token",
     "msat.result",
     "iteration.completed",

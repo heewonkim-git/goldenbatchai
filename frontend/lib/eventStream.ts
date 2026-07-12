@@ -8,6 +8,7 @@ export type EventType =
   | "analysis.started"
   | "analysis.result"
   | "msat.started"
+  | "msat.retrieval"
   | "msat.token"
   | "msat.result"
   | "iteration.completed"
@@ -19,6 +20,7 @@ export const EVENT_TYPES: EventType[] = [
   "analysis.started",
   "analysis.result",
   "msat.started",
+  "msat.retrieval",
   "msat.token",
   "msat.result",
   "iteration.completed",
