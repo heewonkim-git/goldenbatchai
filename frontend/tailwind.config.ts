@@ -18,8 +18,8 @@ const config: Config = {
         ink: "var(--ds-text)",
         "ink-muted": "var(--ds-text-muted)",
         "ink-subtle": "var(--ds-text-subtle)",
-        analysis: "#1428a0", // DS accent-1 (Analysis Agent) — Samsung Blue
-        msat: "#7c3aed", // DS accent-2 (MSAT Agent)
+        analysis: "#0d9488", // DS accent-1 (Analysis) — mint
+        msat: "#404040", // DS accent-2 (MSAT) — gray
       },
       fontFamily: {
         sans: "var(--ds-font-sans)",

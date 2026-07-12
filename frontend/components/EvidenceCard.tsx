@@ -6,9 +6,10 @@
 
 type Ev = Record<string, any>;
 
-const A1 = "var(--ds-accent-1)";
-const OK = "var(--ds-success)";
-const BAD = "var(--ds-danger)";
+// Single mint accent; direction/sign encoded by mint (emphasis) vs gray (muted).
+const A1 = "var(--ds-accent-1)";        // mint
+const OK = "var(--ds-accent-1)";        // positive / significant → mint
+const BAD = "var(--ds-text-subtle)";    // negative / non-significant → gray
 const MUTED = "var(--ds-text-subtle)";
 
 function shortFeat(f: string) {
