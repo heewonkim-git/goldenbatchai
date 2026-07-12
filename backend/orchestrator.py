@@ -39,13 +39,22 @@ async def run_iterations(run_id: str, req: RunRequest) -> AsyncIterator[StreamEv
 
         for tool in tools:
             yield StreamEvent(type="analysis.started", data={"iteration": iteration, "tool": tool})
-            evidence = await asyncio.to_thread(
-                analysis_agent.run_tool, tool, df, req.target, next_params if tool == next_tool else {}
-            )
+            try:
+                evidence = await asyncio.to_thread(
+                    analysis_agent.run_tool, tool, df, req.target,
+                    next_params if tool == next_tool else {},
+                )
+            except Exception as exc:  # isolate a tool failure; keep the run alive
+                yield StreamEvent(type="error", data={"stage": f"analysis:{tool}", "message": str(exc)})
+                continue
             last_evidence = evidence
             yield StreamEvent(type="analysis.result", data={
                 "iteration": iteration, "tool": tool, "evidence": evidence.evidence,
             })
+
+        if last_evidence is None:  # every tool failed this iteration
+            yield StreamEvent(type="error", data={"stage": "analysis", "message": "no evidence produced"})
+            break
 
         # --- MSAT interpretation ---
         yield StreamEvent(type="msat.started", data={"iteration": iteration})

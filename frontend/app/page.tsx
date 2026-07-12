@@ -17,6 +17,7 @@ export default function Page() {
   const [maxIter, setMaxIter] = useState(4);
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [activity, setActivity] = useState<string | null>(null);
   const [theme, setTheme] = useState<ThemeMode>("system");
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -53,21 +54,17 @@ export default function Page() {
     switch (ev.type) {
       case "run.started":
         push({ agent: "system", iteration: 0, title: `Run started · ${d.target}` });
+        setActivity("Starting…");
         break;
       case "analysis.started":
         upsertNode(d.iteration, "active");
-        push({ agent: "analysis", iteration: d.iteration, title: `Running ${d.tool}…` });
+        setActivity(`🧮 Analysis · ${d.tool}…`);
         break;
       case "analysis.result":
-        push({
-          agent: "analysis",
-          iteration: d.iteration,
-          title: `Evidence: ${d.tool}`,
-          body: JSON.stringify(d.evidence),
-        });
+        push({ agent: "analysis", iteration: d.iteration, title: "", tool: d.tool, evidence: d.evidence });
         break;
       case "msat.started":
-        push({ agent: "msat", iteration: d.iteration, title: "Interpreting…" });
+        setActivity("🧠 MSAT interpreting evidence…");
         break;
       case "msat.result":
         push({
@@ -83,18 +80,21 @@ export default function Page() {
           citations: d.citations ?? [],
           nextAction: d.next_action,
         });
+        setActivity(null);
         break;
       case "iteration.completed":
         upsertNode(d.iteration, "done");
         break;
       case "run.finished":
-        push({ agent: "system", iteration: 0, title: `Final: ${d.finalRecommendation}` });
+        push({ agent: "system", iteration: 0, title: `✅ Final: ${d.finalRecommendation}` });
         setFinished(true);
         setRunning(false);
+        setActivity(null);
         break;
       case "error":
         push({ agent: "system", iteration: 0, title: `⚠️ ${d.message}` });
         setRunning(false);
+        setActivity(null);
         break;
     }
   }
@@ -105,6 +105,7 @@ export default function Page() {
     setNodes([]);
     setFinished(false);
     setRunning(true);
+    setActivity("Starting…");
     try {
       await startRun(
         {
@@ -140,7 +141,7 @@ export default function Page() {
 
       <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-2">
         <section className="min-h-0 border-r border-edge bg-surface">
-          <AgentConversation messages={messages} />
+          <AgentConversation messages={messages} activity={activity} />
         </section>
         <section className="min-h-0 bg-surface">
           <HypothesisPanel h={hypothesis} />

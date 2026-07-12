@@ -113,7 +113,7 @@ Return the structured object. Put each cited passage's doc and section in citati
         '"params": {}, "rationale": str}}'
     )
 
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    client = anthropic.Anthropic(api_key=settings.anthropic_api_key, timeout=90.0, max_retries=2)
     resp = client.messages.create(
         model=settings.msat_model,
         max_tokens=1500,
