@@ -55,7 +55,13 @@ export async function startRun(
   const { runId } = (await res.json()) as { runId: string };
 
   const es = new EventSource(`${API_BASE}/api/runs/${runId}/events`);
+  let done = false; // stream reached a natural end (finished or fatal server error)
+
+  // Server-sent, data-bearing events (everything except the ambiguous "error",
+  // which is handled separately because the browser reuses "error" for the
+  // native connection-failure event that carries no data).
   for (const type of EVENT_TYPES) {
+    if (type === "error") continue;
     es.addEventListener(type, (e: MessageEvent) => {
       let data: Record<string, unknown> = {};
       try {
@@ -64,10 +70,46 @@ export async function startRun(
         /* ignore malformed */
       }
       onEvent({ type, data });
-      // per-tool errors are non-fatal (fatal:false) — keep the stream open
-      if (type === "run.finished" || (type === "error" && data.fatal === true)) es.close();
+      if (type === "run.finished") {
+        done = true;
+        es.close();
+      }
     });
   }
+
+  es.addEventListener("error", (e: MessageEvent) => {
+    if (e && e.data) {
+      // a real server-sent error event (SSE `event: error` with a JSON body)
+      let data: Record<string, unknown> = {};
+      try {
+        data = JSON.parse(e.data);
+      } catch {
+        /* ignore malformed */
+      }
+      onEvent({ type: "error", data });
+      if (data.fatal === true) {
+        done = true;
+        es.close();
+      }
+      return;
+    }
+    // native connection-level error (no payload). Ignore the harmless blip that
+    // can fire right after we close a finished stream; otherwise the backend is
+    // unreachable — report once and stop (no silent auto-reconnect storm).
+    if (done) return;
+    done = true;
+    es.close();
+    onEvent({
+      type: "error",
+      data: {
+        stage: "connection",
+        fatal: true,
+        message:
+          "백엔드에 연결하지 못했습니다. 서버가 재배포·콜드스타트 중일 수 있어요. 잠시 후 다시 Run 해주세요.",
+      },
+    });
+  });
+
   return es;
 }
 
