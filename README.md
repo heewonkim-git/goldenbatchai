@@ -34,7 +34,7 @@ See **[PRD.md](./PRD.md)** for the full spec (architecture, tools, feature taxon
   end-to-end with a real key: it reads the actual SHAP/stat evidence, cites the CDMO
   docs, and converges on the Golden Batch window. Falls back to a scripted stub when no
   key is set, so the demo always runs.
-- **Design system** — shared, product-agnostic tokens (`design-system/`, Samsung Blue v1.1.0) with
+- **Design system** — shared, product-agnostic tokens (`design-system/`, mint accent v2.0.0) with
   a live style guide; the frontend consumes them and matches the guide in light and dark.
 
 ## Prerequisites
