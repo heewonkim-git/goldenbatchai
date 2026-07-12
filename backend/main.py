@@ -31,6 +31,16 @@ app.add_middleware(
 _RUNS: dict[str, RunRequest] = {}
 
 
+@app.get("/")
+def root() -> dict:
+    return {
+        "service": "Golden Batch Multi-Agent — backend",
+        "status": "running",
+        "health": "/api/health",
+        "endpoints": ["/api/health", "POST /api/runs", "/api/runs/{id}/events (SSE)"],
+    }
+
+
 @app.get("/api/health")
 def health() -> dict:
     return {
